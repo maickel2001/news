@@ -86,7 +86,13 @@ function getCurrentUser(): ?array
         return null;
     }
     
-    $user = dbFetch("SELECT * FROM users WHERE id = ? AND status = 'active'", [$_SESSION['user_id']]);
+    // Vérifier d'abord si c'est un admin
+    if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'admin') {
+        $user = dbFetch("SELECT *, 'admin' as user_type FROM admin_users WHERE id = ? AND status = 'active'", [$_SESSION['user_id']]);
+    } else {
+        $user = dbFetch("SELECT *, 'user' as user_type FROM users WHERE id = ? AND status = 'active'", [$_SESSION['user_id']]);
+    }
+    
     return $user ?: null;
 }
 
@@ -97,17 +103,24 @@ function loginUser(array $user): void
 {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_email'] = $user['email'];
-    $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+    $_SESSION['user_type'] = $user['user_type'] ?? 'user';
+    
+    // Gérer le nom selon le type d'utilisateur
+    if (isset($user['full_name'])) {
+        // Admin users have full_name
+        $_SESSION['user_name'] = $user['full_name'];
+    } else {
+        // Regular users have first_name + last_name
+        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+    }
+    
     $_SESSION['login_time'] = time();
     
-    // Mettre à jour la dernière connexion
-    dbUpdate('users', [
-        'last_login' => date('Y-m-d H:i:s'),
-        'last_ip' => getClientIP()
-    ], 'id = ?', [$user['id']]);
-    
-    // Créer une session en base
-    createUserSession($user['id']);
+    // Note: La mise à jour de last_login est maintenant gérée dans login.php
+    // Créer une session en base (seulement pour les utilisateurs normaux)
+    if ($_SESSION['user_type'] === 'user') {
+        createUserSession($user['id']);
+    }
 }
 
 /**

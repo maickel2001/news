@@ -53,11 +53,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     logFailedLogin($formData['email']);
                 } else {
                     try {
-                        // Récupérer l'utilisateur
-                        $user = dbFetch(
-                            "SELECT * FROM users WHERE email = ? AND status != 'suspended'",
+                        // D'abord vérifier dans admin_users
+                        $admin = dbFetch(
+                            "SELECT *, 'admin' as user_type FROM admin_users WHERE email = ? AND status = 'active'",
                             [$formData['email']]
                         );
+                        
+                        $user = null;
+                        $isAdmin = false;
+                        
+                        if ($admin && verifyPassword($formData['password'], $admin['password_hash'])) {
+                            $user = $admin;
+                            $isAdmin = true;
+                        } else {
+                            // Si pas trouvé dans admin_users, chercher dans users
+                            $user = dbFetch(
+                                "SELECT *, 'user' as user_type FROM users WHERE email = ? AND status != 'suspended'",
+                                [$formData['email']]
+                            );
+                        }
                         
                         if ($user && verifyPassword($formData['password'], $user['password_hash'])) {
                             // Vérifier si le compte est actif
@@ -71,8 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 // Connexion réussie
                                 loginUser($user);
                                 
-                                // Gestion du "Se souvenir de moi"
-                                if ($formData['remember_me']) {
+                                // Gestion du "Se souvenir de moi" (seulement pour les utilisateurs normaux)
+                                if ($formData['remember_me'] && !$isAdmin) {
                                     $rememberToken = generateSecureToken();
                                     $expires = time() + (30 * 24 * 3600); // 30 jours
                                     
@@ -86,14 +100,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     setcookie('remember_token', $rememberToken, $expires, '/', '', true, true);
                                 }
                                 
+                                // Mettre à jour la dernière connexion et IP
+                                $table = $isAdmin ? 'admin_users' : 'users';
+                                dbUpdate($table, [
+                                    'last_login' => date('Y-m-d H:i:s'),
+                                    'last_ip' => getClientIP()
+                                ], 'id = ?', [$user['id']]);
+                                
                                 // Logger l'activité
-                                logActivity('user_login', "Connexion utilisateur: {$user['email']}", [
+                                $userType = $isAdmin ? 'admin' : 'user';
+                                logActivity($userType . '_login', "Connexion {$userType}: {$user['email']}", [
                                     'user_id' => $user['id'],
-                                    'remember_me' => $formData['remember_me']
+                                    'user_type' => $userType,
+                                    'remember_me' => $formData['remember_me'] ?? false
                                 ]);
                                 
-                                // Redirection après connexion
-                                $redirectTo = $_GET['redirect'] ?? '/dashboard';
+                                // Redirection selon le type d'utilisateur
+                                if ($isAdmin) {
+                                    $redirectTo = '/dashboard.php'; // Pour l'instant, même dashboard
+                                } else {
+                                    $redirectTo = $_GET['redirect'] ?? '/dashboard.php';
+                                }
                                 redirect($redirectTo);
                             }
                         } else {
