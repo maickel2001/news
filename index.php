@@ -11,21 +11,22 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --accent: #f093fb;
-            --dark: #1a1a1a;
-            --light: #f8f9fa;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --benin-green: #00b74a;
-            --benin-red: #e8112d;
-            --benin-yellow: #ffd700;
+            --primary: #000000;
+            --secondary: #ffffff;
+            --accent: #ff6b35;
+            --accent-light: #ff8660;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-light: #999999;
+            --bg-light: #fafafa;
+            --bg-dark: #0a0a0a;
+            --border: #e0e0e0;
+            --shadow: 0 4px 60px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 8px 80px rgba(0, 0, 0, 0.1);
         }
         
         * {
@@ -35,97 +36,81 @@
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
-            line-height: 1.6;
-            color: var(--dark);
-            overflow-x: hidden;
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--secondary);
         }
         
-        /* Navigation Élégante */
+        /* Navigation Minimaliste */
         .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
+            background: rgba(255, 255, 255, 0.9) !important;
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            transition: all 0.4s ease;
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 0;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
         .navbar.scrolled {
-            padding: 0.5rem 0;
-            background: rgba(255, 255, 255, 0.98) !important;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
         }
         
         .navbar-brand {
-            font-weight: 800;
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary) !important;
+            text-decoration: none;
             transition: all 0.3s ease;
         }
         
         .navbar-brand:hover {
-            transform: scale(1.05);
+            color: var(--accent) !important;
         }
         
         .nav-link {
-            font-weight: 500;
-            color: var(--dark) !important;
-            margin: 0 0.5rem;
-            padding: 0.75rem 1rem !important;
-            border-radius: 25px;
+            font-weight: 400;
+            color: var(--text-primary) !important;
+            margin: 0 1rem;
+            padding: 0.5rem 0 !important;
+            border-bottom: 2px solid transparent;
             transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .nav-link::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            transform: translateX(-50%);
-            transition: width 0.3s ease;
-        }
-        
-        .nav-link:hover::before {
-            width: 80%;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
         }
         
         .nav-link:hover {
-            color: var(--primary) !important;
-            transform: translateY(-2px);
+            color: var(--accent) !important;
+            border-bottom-color: var(--accent);
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
+        .btn-nav {
+            background: var(--primary);
+            color: var(--secondary);
+            border: 2px solid var(--primary);
             padding: 0.75rem 2rem;
-            border-radius: 30px;
-            font-weight: 600;
+            border-radius: 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            font-size: 0.9rem;
         }
         
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        .btn-nav:hover {
+            background: var(--secondary);
+            color: var(--primary);
         }
         
-        /* Hero Section Élégante */
+        /* Hero Section Créative */
         .hero {
-            position: relative;
             min-height: 100vh;
+            background: var(--secondary);
             display: flex;
             align-items: center;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)),
-                        url('https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover;
-            color: white;
+            position: relative;
             overflow: hidden;
         }
         
@@ -133,11 +118,11 @@
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
             right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            width: 50%;
+            height: 100%;
+            background: var(--primary);
+            clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
             z-index: 1;
         }
         
@@ -146,462 +131,398 @@
             z-index: 2;
         }
         
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
+        .hero-tag {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--secondary);
+            padding: 0.5rem 1.5rem;
+            font-size: 0.8rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             margin-bottom: 2rem;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%);
         }
         
         .hero-title {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            line-height: 0.9;
+            margin-bottom: 2rem;
+            color: var(--primary);
         }
         
-        .hero-title .highlight {
-            background: linear-gradient(135deg, var(--benin-yellow), #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 2s ease-in-out infinite;
+        .hero-title .accent {
+            color: var(--accent);
+            position: relative;
         }
         
-        @keyframes shimmer {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+        .hero-title .accent::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: var(--accent);
+            opacity: 0.3;
         }
         
         .hero-subtitle {
-            font-size: clamp(1.1rem, 3vw, 1.4rem);
-            opacity: 0.95;
-            margin-bottom: 2.5rem;
-            max-width: 600px;
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin-bottom: 3rem;
             line-height: 1.6;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
         
         .hero-buttons {
             display: flex;
-            flex-wrap: wrap;
             gap: 1rem;
-            margin-bottom: 3rem;
+            flex-wrap: wrap;
         }
         
         .btn-hero {
-            padding: 1rem 2.5rem;
-            font-size: 1.1rem;
-            border-radius: 50px;
+            padding: 1.2rem 3rem;
             font-weight: 600;
-            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 0;
+            font-size: 0.9rem;
             position: relative;
             overflow: hidden;
         }
         
-        .btn-hero-primary {
-            background: linear-gradient(135deg, var(--benin-yellow), #ff6b6b);
-            color: white;
-            border: none;
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        .btn-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
         
-        .btn-hero-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
-            color: white;
+        .btn-hero:hover::before {
+            left: 100%;
         }
         
-        .btn-hero-secondary {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
+        .btn-primary-hero {
+            background: var(--accent);
+            color: var(--secondary);
+            border: 2px solid var(--accent);
         }
         
-        .btn-hero-secondary:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-3px);
-            color: white;
+        .btn-primary-hero:hover {
+            background: var(--accent-light);
+            border-color: var(--accent-light);
+            color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary-hero {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary-hero:hover {
+            background: var(--primary);
+            color: var(--secondary);
+            transform: translateY(-2px);
         }
         
         .hero-visual {
             position: relative;
             z-index: 2;
+            text-align: center;
         }
         
-        .phone-mockup {
-            position: relative;
-            max-width: 300px;
-            margin: 0 auto;
-            animation: phoneFloat 6s ease-in-out infinite;
-        }
-        
-        @keyframes phoneFloat {
-            0%, 100% { transform: translateY(0px) rotateY(0deg); }
-            50% { transform: translateY(-20px) rotateY(5deg); }
-        }
-        
-        .phone-mockup img {
-            width: 100%;
-            height: auto;
-            border-radius: 25px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .phone-mockup:hover img {
-            transform: scale(1.05);
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
-        }
-        
-        .floating-icons {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-        
-        .social-icon {
-            position: absolute;
-            width: 50px;
-            height: 50px;
+        .hero-shape {
+            width: 400px;
+            height: 400px;
+            background: var(--secondary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-            animation: iconFloat 4s ease-in-out infinite;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-        
-        .social-icon.instagram {
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-            top: 10%;
-            right: -20px;
-            animation-delay: 0s;
-        }
-        
-        .social-icon.tiktok {
-            background: linear-gradient(45deg, #ff0050, #00f2ea);
-            top: 30%;
-            left: -20px;
-            animation-delay: 1s;
-        }
-        
-        .social-icon.facebook {
-            background: #1877f2;
-            bottom: 30%;
-            right: -20px;
-            animation-delay: 2s;
-        }
-        
-        .social-icon.youtube {
-            background: #ff0000;
-            bottom: 10%;
-            left: -20px;
-            animation-delay: 3s;
-        }
-        
-        @keyframes iconFloat {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-15px) scale(1.1); }
-        }
-        
-        /* Section Statistiques Élégante */
-        .stats {
-            padding: 5rem 0;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            position: relative;
-        }
-        
-        .stats::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="%23667eea" opacity="0.1"/><circle cx="75" cy="75" r="2" fill="%23764ba2" opacity="0.1"/><circle cx="75" cy="25" r="1.5" fill="%23f093fb" opacity="0.1"/><circle cx="25" cy="75" r="1.5" fill="%23667eea" opacity="0.1"/></svg>') repeat;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            transition: all 0.4s ease;
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            margin: 0 auto;
+            box-shadow: var(--shadow-hover);
             position: relative;
             overflow: hidden;
         }
         
-        .stat-card::before {
+        .hero-shape::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
-        }
-        
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 1rem;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 80%;
+            background: var(--accent);
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
         }
         
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        
-        .stat-label {
-            color: #666;
-            font-weight: 500;
-            font-size: 1rem;
-        }
-        
-        /* Section Services Élégante */
-        .services {
-            padding: 6rem 0;
-            background: white;
-            position: relative;
-        }
-        
-        .section-title {
+        .hero-shape-content {
             text-align: center;
-            margin-bottom: 4rem;
-            position: relative;
+            z-index: 1;
+            color: var(--primary);
         }
         
-        .section-title h2 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .hero-shape-content h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 1rem;
         }
         
-        .section-title .underline {
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            margin: 0 auto 1.5rem;
-            border-radius: 2px;
+        .hero-shape-content p {
+            font-size: 1.1rem;
+            opacity: 0.7;
+        }
+        
+        /* Section Services Créative */
+        .services {
+            padding: 8rem 0;
+            background: var(--bg-light);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+        
+        .section-tag {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--secondary);
+            padding: 0.5rem 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
         }
         
         .service-card {
-            background: white;
-            border-radius: 20px;
-            padding: 2.5rem;
-            text-align: center;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
-            transition: all 0.4s ease;
-            height: 100%;
+            background: var(--secondary);
+            padding: 3rem;
+            border: 1px solid var(--border);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         .service-card::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.03), transparent);
-            transform: rotate(45deg);
-            transition: all 0.4s ease;
-            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
         }
         
         .service-card:hover::before {
-            opacity: 1;
-            animation: shine 1s ease;
-        }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
+            transform: scaleX(1);
         }
         
         .service-card:hover {
-            transform: translateY(-15px);
-            box-shadow: 0 25px 70px rgba(102, 126, 234, 0.15);
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
         }
         
         .service-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            border-radius: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: var(--secondary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            color: white;
-            position: relative;
-            z-index: 1;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
         }
         
-        .service-card h4 {
+        .service-card:hover .service-icon {
+            background: var(--accent);
+            transform: rotate(5deg);
+        }
+        
+        .service-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
             font-weight: 700;
+            color: var(--primary);
             margin-bottom: 1rem;
-            color: var(--dark);
-            font-size: 1.3rem;
-            position: relative;
-            z-index: 1;
         }
         
         .service-card p {
-            color: #666;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.7;
         }
         
         .service-price {
-            font-size: 1.2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-            z-index: 1;
+            color: var(--accent);
+            font-size: 1.1rem;
         }
         
-        /* Section CTA Élégante */
-        .cta {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95)),
-                        url('https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover;
-            color: white;
+        /* Section Stats Unique */
+        .stats {
             padding: 6rem 0;
+            background: var(--primary);
+            color: var(--secondary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 2rem 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-item:last-child {
+            border-right: none;
+        }
+        
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        
+        /* Section CTA Moderne */
+        .cta {
+            padding: 8rem 0;
+            background: var(--bg-light);
             text-align: center;
             position: relative;
-            overflow: hidden;
         }
         
         .cta::before {
             content: '';
             position: absolute;
-            top: 0;
+            top: 50%;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: translateY(-50%);
         }
         
         .cta-content {
+            background: var(--secondary);
+            padding: 4rem;
+            border: 1px solid var(--border);
             position: relative;
-            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
         }
         
         .cta h2 {
-            font-size: clamp(2rem, 5vw, 3rem);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
             font-weight: 800;
+            color: var(--primary);
             margin-bottom: 1.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .cta p {
-            font-size: clamp(1rem, 3vw, 1.3rem);
-            opacity: 0.95;
-            margin-bottom: 2.5rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            line-height: 1.7;
         }
         
-        /* Footer Élégant */
+        /* Footer Minimaliste */
         .footer {
-            background: var(--dark);
-            color: white;
-            padding: 4rem 0 2rem;
-            position: relative;
+            background: var(--primary);
+            color: var(--secondary);
+            padding: 5rem 0 2rem;
         }
         
-        .footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        .footer-content {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 3rem;
+            margin-bottom: 2rem;
         }
         
         .footer h5 {
-            background: linear-gradient(135deg, var(--benin-yellow), #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1.5rem;
+            font-family: 'Space Grotesk', sans-serif;
             font-weight: 700;
-            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
         }
         
         .footer a {
-            color: #ccc;
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             transition: all 0.3s ease;
-            display: inline-block;
+            display: block;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
         }
         
         .footer a:hover {
-            color: var(--benin-yellow);
-            transform: translateX(5px);
+            color: var(--accent);
+            padding-left: 10px;
         }
         
         .footer-bottom {
-            border-top: 1px solid #333;
-            margin-top: 3rem;
-            padding-top: 2rem;
             text-align: center;
-            color: #999;
+            font-size: 0.9rem;
+            opacity: 0.7;
         }
         
         .social-links {
@@ -611,29 +532,41 @@
         }
         
         .social-links a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
             width: 45px;
             height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            color: white !important;
-            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--secondary) !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
             transition: all 0.3s ease;
-            transform: translateX(0) !important;
+            margin-bottom: 0 !important;
+            padding-left: 0 !important;
         }
         
         .social-links a:hover {
-            transform: translateY(-3px) scale(1.1) !important;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            background: var(--accent);
+            transform: translateY(-3px);
+            padding-left: 0 !important;
         }
         
-        /* Responsive Élégant */
+        /* Responsive */
         @media (max-width: 768px) {
+            .hero::before {
+                width: 100%;
+                height: 50%;
+                clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+            }
+            
             .hero {
-                padding: 6rem 0 3rem;
                 text-align: center;
+                padding: 6rem 0;
+            }
+            
+            .hero-shape {
+                width: 300px;
+                height: 300px;
+                margin-top: 3rem;
             }
             
             .hero-buttons {
@@ -647,84 +580,73 @@
                 max-width: 300px;
             }
             
-            .floating-icons {
-                display: none;
+            .navbar-nav {
+                text-align: center;
+                padding: 2rem 0;
             }
             
-            .stat-card {
+            .nav-link {
+                margin: 0.5rem 0;
+            }
+            
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 2rem;
                 margin-bottom: 2rem;
             }
             
-            .service-card {
-                margin-bottom: 2rem;
+            .stat-item:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
             }
             
-            .navbar-collapse {
-                background: rgba(255, 255, 255, 0.98);
-                backdrop-filter: blur(20px);
-                border-radius: 15px;
-                margin-top: 1rem;
-                padding: 1.5rem;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            .cta-content {
+                padding: 2rem;
             }
         }
         
-        @media (max-width: 480px) {
-            .phone-mockup {
-                max-width: 250px;
-            }
-            
-            .stat-card,
-            .service-card {
-                padding: 2rem 1.5rem;
-            }
-            
-            .social-links {
-                justify-content: center;
-            }
-        }
-        
-        /* Animations Élégantes */
-        .fade-in {
+        /* Animations */
+        .slide-up {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
-        .fade-in.visible {
+        .slide-up.visible {
             opacity: 1;
             transform: translateY(0);
         }
         
-        .fade-in-left {
+        .slide-left {
             opacity: 0;
             transform: translateX(-50px);
-            transition: all 0.8s ease;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
-        .fade-in-left.visible {
+        .slide-left.visible {
             opacity: 1;
             transform: translateX(0);
         }
         
-        .fade-in-right {
+        .slide-right {
             opacity: 0;
             transform: translateX(50px);
-            transition: all 0.8s ease;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
-        .fade-in-right.visible {
+        .slide-right.visible {
             opacity: 1;
             transform: translateX(0);
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Élégante -->
+    <!-- Navigation Minimaliste -->
     <nav class="navbar navbar-expand-lg fixed-top" id="navbar">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="fas fa-spider me-2"></i>TarantulaSMM
+                <i class="fas fa-spider me-2"></i>TARANTULA<strong>SMM</strong>
             </a>
             
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -748,63 +670,52 @@
                 </ul>
                 
                 <div class="d-flex">
-                    <a href="login.php" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                    <a href="login.php" class="btn btn-nav">
+                        Connexion
                     </a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section Élégante -->
+    <!-- Hero Section Créative -->
     <section id="accueil" class="hero">
         <div class="container">
             <div class="row align-items-center min-vh-100">
                 <div class="col-lg-6">
-                    <div class="hero-content fade-in-left">
-                        <div class="hero-badge">
-                            <i class="fas fa-crown"></i>
-                            <span>#1 SMM Panel au Bénin 🇧🇯</span>
+                    <div class="hero-content slide-left">
+                        <div class="hero-tag">
+                            SMM Panel Premium
                         </div>
                         
                         <h1 class="hero-title">
-                            Booste tes <span class="highlight">Réseaux Sociaux</span><br>
-                            comme un Pro !
+                            DOMINEZ<br>
+                            LES <span class="accent">RÉSEAUX</span><br>
+                            SOCIAUX
                         </h1>
                         
                         <p class="hero-subtitle">
-                            La plateforme SMM la plus performante du Bénin. Développe ton influence sur Instagram, TikTok, Facebook et YouTube avec nos services premium et notre support local 24h/7j.
+                            La plateforme SMM révolutionnaire qui propulse votre influence digitale. 
+                            Croissance authentique, résultats garantis, support béninois d'exception.
                         </p>
                         
                         <div class="hero-buttons">
-                            <a href="register.php" class="btn btn-hero btn-hero-primary">
-                                <i class="fas fa-rocket me-2"></i>Commencer Maintenant
+                            <a href="register.php" class="btn btn-hero btn-primary-hero">
+                                <i class="fas fa-rocket me-2"></i>Démarrer Maintenant
                             </a>
-                            <a href="#services" class="btn btn-hero btn-hero-secondary">
-                                <i class="fas fa-play me-2"></i>Découvrir nos Services
+                            <a href="#services" class="btn btn-hero btn-secondary-hero">
+                                Explorer les Services
                             </a>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-lg-6">
-                    <div class="hero-visual fade-in-right">
-                        <div class="phone-mockup">
-                            <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="SMM Panel Interface" class="img-fluid">
-                            
-                            <div class="floating-icons">
-                                <div class="social-icon instagram">
-                                    <i class="fab fa-instagram"></i>
-                                </div>
-                                <div class="social-icon tiktok">
-                                    <i class="fab fa-tiktok"></i>
-                                </div>
-                                <div class="social-icon facebook">
-                                    <i class="fab fa-facebook"></i>
-                                </div>
-                                <div class="social-icon youtube">
-                                    <i class="fab fa-youtube"></i>
-                                </div>
+                    <div class="hero-visual slide-right">
+                        <div class="hero-shape">
+                            <div class="hero-shape-content">
+                                <h3>25K+</h3>
+                                <p>Créateurs nous font confiance</p>
                             </div>
                         </div>
                     </div>
@@ -813,175 +724,150 @@
         </div>
     </section>
 
-    <!-- Section Statistiques Élégante -->
-    <section class="stats">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-card fade-in">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <span class="stat-number" data-count="25000">0</span>
-                        <div class="stat-label">Clients Satisfaits</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-card fade-in">
-                        <div class="stat-icon">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                        <span class="stat-number">24h</span>
-                        <div class="stat-label">Support Premium</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-card fade-in">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <span class="stat-number" data-count="99">0</span>
-                        <div class="stat-label">% Taux de Réussite</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-card fade-in">
-                        <div class="stat-icon">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <span class="stat-number" data-count="50">0</span>
-                        <div class="stat-label">Services Disponibles</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section Services Élégante -->
+    <!-- Section Services Créative -->
     <section id="services" class="services">
         <div class="container">
-            <div class="section-title fade-in">
-                <h2>Nos Services Premium</h2>
-                <div class="underline"></div>
-                <p class="lead">Des solutions professionnelles pour dominer chaque plateforme sociale</p>
+            <div class="section-header slide-up">
+                <div class="section-tag">Nos Solutions</div>
+                <h2 class="section-title">SERVICES PREMIUM</h2>
+                <p class="section-subtitle">
+                    Des outils puissants pour transformer votre présence digitale en machine à succès
+                </p>
             </div>
             
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="service-card fade-in">
-                        <div class="service-icon" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);">
-                            <i class="fab fa-instagram"></i>
-                        </div>
-                        <h4>Instagram Pro</h4>
-                        <p>Followers authentiques, likes organiques, vues stories et commentaires de qualité premium pour exploser sur Instagram</p>
-                        <div class="service-price">À partir de 500 FCFA</div>
+            <div class="services-grid">
+                <div class="service-card slide-up">
+                    <div class="service-icon">
+                        <i class="fab fa-instagram"></i>
                     </div>
+                    <h3>Instagram Elite</h3>
+                    <p>Croissance organique ultra-ciblée avec followers authentiques, engagement premium et analyse complète de performance.</p>
+                    <div class="service-price">À partir de 500 FCFA</div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
-                    <div class="service-card fade-in">
-                        <div class="service-icon" style="background: linear-gradient(45deg, #ff0050, #00f2ea);">
-                            <i class="fab fa-tiktok"></i>
-                        </div>
-                        <h4>TikTok Viral</h4>
-                        <p>Followers ciblés, likes massifs, vues explosives et partages pour rendre ton contenu viral sur TikTok</p>
-                        <div class="service-price">À partir de 400 FCFA</div>
+                <div class="service-card slide-up">
+                    <div class="service-icon">
+                        <i class="fab fa-tiktok"></i>
                     </div>
+                    <h3>TikTok Explosion</h3>
+                    <p>Stratégies virales avancées pour maximiser votre portée avec du contenu optimisé et des trends analysis.</p>
+                    <div class="service-price">À partir de 400 FCFA</div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
-                    <div class="service-card fade-in">
-                        <div class="service-icon" style="background: #1877f2;">
-                            <i class="fab fa-facebook"></i>
-                        </div>
-                        <h4>Facebook Business</h4>
-                        <p>Likes de pages professionnels, followers engagés, réactions authentiques et partages organiques</p>
-                        <div class="service-price">À partir de 600 FCFA</div>
+                <div class="service-card slide-up">
+                    <div class="service-icon">
+                        <i class="fab fa-facebook"></i>
                     </div>
+                    <h3>Facebook Pro</h3>
+                    <p>Solutions business complètes pour pages professionnelles avec ciblage démographique précis.</p>
+                    <div class="service-price">À partir de 600 FCFA</div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
-                    <div class="service-card fade-in">
-                        <div class="service-icon" style="background: #ff0000;">
-                            <i class="fab fa-youtube"></i>
-                        </div>
-                        <h4>YouTube Elite</h4>
-                        <p>Abonnés fidèles, vues ciblées, likes authentiques et commentaires pour faire exploser ta chaîne</p>
-                        <div class="service-price">À partir de 800 FCFA</div>
+                <div class="service-card slide-up">
+                    <div class="service-icon">
+                        <i class="fab fa-youtube"></i>
                     </div>
+                    <h3>YouTube Master</h3>
+                    <p>Optimisation de chaîne complète avec algorithme YouTube et monétisation accélérée.</p>
+                    <div class="service-price">À partir de 800 FCFA</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Section CTA Élégante -->
+    <!-- Section Stats Unique -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid slide-up">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="25000">0</span>
+                    <div class="stat-label">Créateurs Actifs</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="10">0</span>
+                    <div class="stat-label">Millions d'Interactions</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="99">0</span>
+                    <div class="stat-label">% Satisfaction Client</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-count="24">0</span>
+                    <div class="stat-label">Support Non-Stop</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section CTA Moderne -->
     <section id="prix" class="cta">
         <div class="container">
-            <div class="cta-content fade-in">
-                <h2>Prêt à Dominer les Réseaux ?</h2>
+            <div class="cta-content slide-up">
+                <h2>PRÊT POUR LE SUCCÈS ?</h2>
                 <p>
-                    Rejoins l'élite des créateurs béninois qui ont choisi TarantulaSMM pour propulser leur influence. 
-                    Paiement simple et sécurisé via Mobile Money MTN/Moov.
+                    Rejoignez l'élite des créateurs de contenu qui dominent leurs marchés. 
+                    Votre révolution digitale commence aujourd'hui.
                 </p>
-                <a href="register.php" class="btn btn-hero btn-hero-primary">
-                    <i class="fas fa-star me-2"></i>Créer mon Compte Premium
+                <a href="register.php" class="btn btn-hero btn-primary-hero">
+                    <i class="fas fa-crown me-2"></i>Devenir Premium
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- Footer Élégant -->
+    <!-- Footer Minimaliste -->
     <footer id="contact" class="footer">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5><i class="fas fa-spider me-2"></i>TarantulaSMM Bénin</h5>
-                    <p>La plateforme SMM de référence au Bénin. Propulse ton influence avec nos services premium et notre équipe d'experts béninois disponible 24h/7j.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-tiktok"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+            <div class="footer-content">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <h5>TarantulaSMM</h5>
+                        <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7;">
+                            La révolution SMM au Bénin. Excellence technologique, 
+                            expertise locale, résultats extraordinaires.
+                        </p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-tiktok"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                            <a href="#"><i class="fab fa-youtube"></i></a>
+                            <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h5>Services</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#">Instagram Pro</a></li>
-                        <li><a href="#">TikTok Viral</a></li>
-                        <li><a href="#">Facebook Business</a></li>
-                        <li><a href="#">YouTube Elite</a></li>
-                        <li><a href="#">Pack Créateur</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Support Premium</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#">Centre d'assistance</a></li>
-                        <li><a href="#">Chat en direct 24/7</a></li>
-                        <li><a href="#">WhatsApp: +229 97 00 00 00</a></li>
-                        <li><a href="#">Email: support@tarantulasmm.bj</a></li>
-                        <li><a href="#">FAQ Complète</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Paiement Sécurisé</h5>
-                    <p>Moyens de paiement acceptés :</p>
-                    <div class="d-flex flex-wrap gap-2 mb-3">
-                        <span class="badge bg-warning">MTN Mobile Money</span>
-                        <span class="badge bg-primary">Moov Money</span>
-                        <span class="badge bg-success">Paiement Instantané</span>
+                    
+                    <div class="col-lg-2 col-md-6 mb-4">
+                        <h5>Solutions</h5>
+                        <a href="#">Instagram Elite</a>
+                        <a href="#">TikTok Explosion</a>
+                        <a href="#">Facebook Pro</a>
+                        <a href="#">YouTube Master</a>
+                        <a href="#">Analytics</a>
                     </div>
-                    <p><small>Transactions 100% sécurisées et cryptées</small></p>
+                    
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <h5>Support Elite</h5>
+                        <a href="#">Centre d'Excellence</a>
+                        <a href="#">Chat Premium 24/7</a>
+                        <a href="#">WhatsApp: +229 97 00 00 00</a>
+                        <a href="#">expert@tarantulasmm.bj</a>
+                        <a href="#">Formation Personnalisée</a>
+                    </div>
+                    
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <h5>Paiements</h5>
+                        <div style="margin-bottom: 1rem;">
+                            <span class="badge" style="background: #ff6b35; margin-right: 0.5rem;">MTN Mobile Money</span>
+                            <span class="badge" style="background: #0066cc;">Moov Money</span>
+                        </div>
+                        <a href="#">Sécurité Bancaire</a>
+                        <a href="#">Cryptage SSL</a>
+                        <a href="#">Protection Données</a>
+                    </div>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2024 TarantulaSMM Bénin. Tous droits réservés. | <a href="#">Conditions d'utilisation</a> | <a href="#">Politique de confidentialité</a></p>
+                <p>&copy; 2024 TarantulaSMM Bénin. Innovation • Excellence • Résultats</p>
             </div>
         </div>
     </footer>
@@ -990,7 +876,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Navbar scroll effect élégant
+        // Navbar scroll effect
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('navbar');
             if (window.scrollY > 50) {
@@ -1000,7 +886,7 @@
             }
         });
         
-        // Animation des compteurs
+        // Counter animation
         function animateCounters() {
             const counters = document.querySelectorAll('[data-count]');
             
@@ -1022,10 +908,10 @@
             });
         }
         
-        // Intersection Observer pour animations
+        // Intersection Observer
         const observerOptions = {
             threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
+            rootMargin: '0px 0px -50px 0px'
         };
         
         const observer = new IntersectionObserver((entries) => {
@@ -1033,7 +919,6 @@
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
                     
-                    // Déclencher l'animation des compteurs
                     if (entry.target.classList.contains('stats')) {
                         setTimeout(animateCounters, 500);
                     }
@@ -1041,12 +926,12 @@
             });
         }, observerOptions);
         
-        // Observer tous les éléments animés
-        document.querySelectorAll('.fade-in, .fade-in-left, .fade-in-right, .stats').forEach(el => {
+        // Observer elements
+        document.querySelectorAll('.slide-up, .slide-left, .slide-right, .stats').forEach(el => {
             observer.observe(el);
         });
         
-        // Smooth scroll élégant
+        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1061,7 +946,7 @@
             });
         });
         
-        // Menu mobile élégant
+        // Mobile menu
         document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 const navbarCollapse = document.querySelector('.navbar-collapse');
@@ -1071,25 +956,15 @@
             });
         });
         
-        // Parallax léger pour le hero
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const hero = document.querySelector('.hero');
-            if (hero && scrolled < hero.offsetHeight) {
-                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
-        });
-        
-        // Animation au chargement
+        // Loading animation
         window.addEventListener('load', () => {
-            document.body.style.opacity = '1';
             setTimeout(() => {
-                document.querySelectorAll('.fade-in-left, .fade-in-right').forEach((el, index) => {
+                document.querySelectorAll('.slide-left, .slide-right').forEach((el, index) => {
                     setTimeout(() => {
                         el.classList.add('visible');
-                    }, index * 200);
+                    }, index * 300);
                 });
-            }, 300);
+            }, 200);
         });
     </script>
 </body>
