@@ -388,31 +388,129 @@
 
     <!-- Hero Section -->
     <section id="accueil" class="hero-section">
+        <!-- Particules d'arrière-plan -->
+        <div class="particles-bg">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content fade-in-up">
-                        <h1 class="hero-title">Booste tes Réseaux Sociaux au <span style="color: #f59e0b;">Bénin</span></h1>
+                        <div class="hero-badge">
+                            <i class="fas fa-crown me-2"></i>#1 SMM Panel au Bénin
+                        </div>
+                        <h1 class="hero-title">
+                            Booste tes <span class="gradient-text">Réseaux Sociaux</span> 
+                            au <span class="benin-flag">Bénin</span>
+                        </h1>
                         <p class="hero-subtitle">
-                            Le SMM Panel #1 au Bénin. Followers, likes, vues et plus encore pour Instagram, TikTok, Facebook, YouTube. 
-                            Paiement facile via Mobile Money MTN/Moov.
+                            Le SMM Panel de référence pour tous les créateurs béninois. Followers, likes, vues et plus encore pour 
+                            Instagram, TikTok, Facebook, YouTube. Paiement sécurisé via Mobile Money MTN/Moov.
                         </p>
-                        <div class="d-flex gap-3 flex-wrap">
-                            <a href="register.php" class="btn btn-cta">
+                        
+                        <!-- Statistiques rapides -->
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">10K+</span>
+                                <span class="stat-label">Clients satisfaits</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">24h</span>
+                                <span class="stat-label">Support béninois</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">50+</span>
+                                <span class="stat-label">Services disponibles</span>
+                            </div>
+                        </div>
+                        
+                        <div class="hero-actions">
+                            <a href="register.php" class="btn btn-cta pulse-animation">
                                 <i class="fas fa-rocket me-2"></i>Commencer Maintenant
+                                <span class="btn-shine"></span>
                             </a>
-                            <a href="#services" class="btn btn-outline-light">
-                                <i class="fas fa-eye me-2"></i>Voir les Services
+                            <a href="#services" class="btn btn-outline-light glass-btn">
+                                <i class="fas fa-play me-2"></i>Voir la Démo
                             </a>
+                        </div>
+                        
+                        <!-- Badges de confiance -->
+                        <div class="trust-badges">
+                            <div class="badge-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>100% Sécurisé</span>
+                            </div>
+                            <div class="badge-item">
+                                <i class="fas fa-bolt"></i>
+                                <span>Livraison Rapide</span>
+                            </div>
+                            <div class="badge-item">
+                                <i class="fas fa-heart"></i>
+                                <span>Support 24/7</span>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <div class="text-center floating-animation">
-                        <i class="fas fa-mobile-alt" style="font-size: 15rem; color: rgba(255,255,255,0.1);"></i>
+                    <div class="hero-visual">
+                        <!-- Téléphone 3D mockup -->
+                        <div class="phone-mockup">
+                            <div class="phone-screen">
+                                <div class="social-icons-float">
+                                    <div class="social-icon instagram">
+                                        <i class="fab fa-instagram"></i>
+                                    </div>
+                                    <div class="social-icon tiktok">
+                                        <i class="fab fa-tiktok"></i>
+                                    </div>
+                                    <div class="social-icon facebook">
+                                        <i class="fab fa-facebook"></i>
+                                    </div>
+                                    <div class="social-icon youtube">
+                                        <i class="fab fa-youtube"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Notifications de boost -->
+                                <div class="boost-notifications">
+                                    <div class="notification n1">
+                                        <i class="fas fa-heart text-danger"></i>
+                                        +100 Likes reçus
+                                    </div>
+                                    <div class="notification n2">
+                                        <i class="fas fa-users text-primary"></i>
+                                        +50 Followers
+                                    </div>
+                                    <div class="notification n3">
+                                        <i class="fas fa-eye text-success"></i>
+                                        +1000 Vues
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Éléments décoratifs -->
+                        <div class="floating-elements">
+                            <div class="float-icon f1"><i class="fas fa-hashtag"></i></div>
+                            <div class="float-icon f2"><i class="fas fa-at"></i></div>
+                            <div class="float-icon f3"><i class="fas fa-thumbs-up"></i></div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Indicateur de scroll -->
+        <div class="scroll-indicator">
+            <div class="scroll-mouse">
+                <div class="scroll-wheel"></div>
+            </div>
+            <span>Scroll pour découvrir</span>
         </div>
     </section>
 

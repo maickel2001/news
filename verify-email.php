@@ -26,11 +26,13 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
     $token = sanitizeString($_GET['token']);
     
     try {
+        // Initialiser la base de données
+        $db = Database::getInstance();
+        
         // Chercher l'utilisateur avec ce token
-        $user = dbFetch(
-            "SELECT * FROM users WHERE email_verification_token = ? AND status = 'inactive'",
-            [$token]
-        );
+        $stmt = $db->prepare("SELECT * FROM users WHERE email_verification_token = ? AND status = 'inactive'");
+        $stmt->execute([$token]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$user) {
             $status = 'error';
@@ -44,11 +46,8 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
                 $userEmail = $user['email'];
             } else {
                 // Activer le compte
-                $updated = dbUpdate('users', [
-                    'status' => 'active',
-                    'email_verified' => 1,
-                    'email_verification_token' => null
-                ], 'id = ?', [$user['id']]);
+                $updateStmt = $db->prepare("UPDATE users SET status = 'active', email_verified = 1, email_verification_token = NULL WHERE id = ?");
+                $updated = $updateStmt->execute([$user['id']]);
                 
                 if ($updated) {
                     $status = 'success';
@@ -56,27 +55,17 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
                     $userEmail = $user['email'];
                     
                     // Logger l'activité
-                    logActivity('email_verified', "Email vérifié pour: {$user['email']}", [
-                        'user_id' => $user['id']
-                    ]);
-                    
-                    // Envoyer un email de bienvenue
-                    $welcomeSubject = "Bienvenue sur TarantulaSMM Bénin !";
-                    $welcomeMessage = "
-                        <h2>Bienvenue {$user['first_name']} !</h2>
-                        <p>Votre compte TarantulaSMM a été activé avec succès.</p>
-                        <p>Vous pouvez maintenant :</p>
-                        <ul>
-                            <li>Commander des services de boost pour vos réseaux sociaux</li>
-                            <li>Suivre vos commandes en temps réel</li>
-                            <li>Contacter notre support béninois 24h/24</li>
-                        </ul>
-                        <p><a href='" . getBaseURL() . "/login.php' style='background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;'>Se connecter maintenant</a></p>
-                        <hr>
-                        <p><small>TarantulaSMM Bénin - Boost tes réseaux sociaux</small></p>
-                    ";
-                    
-                    sendEmail($user['email'], $welcomeSubject, $welcomeMessage);
+                    try {
+                        $logStmt = $db->prepare("INSERT INTO activity_logs (action, description, metadata, ip_address) VALUES (?, ?, ?, ?)");
+                        $logStmt->execute([
+                            'email_verified',
+                            "Email vérifié pour: {$user['email']}",
+                            json_encode(['user_id' => $user['id']]),
+                            $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                        ]);
+                    } catch (Exception $logError) {
+                        // Log error silently
+                    }
                 } else {
                     $status = 'error';
                     $message = 'Erreur lors de l\'activation du compte. Veuillez réessayer.';
@@ -87,7 +76,7 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
     } catch (Exception $e) {
         error_log("Email verification error: " . $e->getMessage());
         $status = 'error';
-        $message = 'Erreur système. Veuillez réessayer plus tard.';
+        $message = 'Erreur de connexion à la base de données. Veuillez réessayer plus tard.';
     }
 }
 ?>
