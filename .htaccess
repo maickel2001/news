@@ -1,0 +1,156 @@
+# TarantulaSMM Bénin - Configuration Apache
+# Optimisé pour Hostinger et hébergements partagés
+
+# ========================================
+# SÉCURITÉ
+# ========================================
+
+# Masquer la version Apache et PHP
+ServerTokens Prod
+ServerSignature Off
+
+# Empêcher l'accès aux fichiers sensibles
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files ~ "\.php\.bak$">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files ~ "\.sql$">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files ~ "config\.php$">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protection contre les injections XSS
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# ========================================
+# PERFORMANCE ET CACHE
+# ========================================
+
+# Compression GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Cache des fichiers statiques
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Images
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    
+    # CSS et JS
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-javascript "access plus 1 month"
+    
+    # Fonts
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+    
+    # HTML (pour les pages statiques)
+    ExpiresByType text/html "access plus 1 day"
+</IfModule>
+
+# ========================================
+# URLs CONVIVIALES
+# ========================================
+
+RewriteEngine On
+
+# Redirection HTTPS (si disponible)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Retirer .php des URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+
+# Redirection index
+RewriteRule ^$ index.php [L]
+
+# URLs personnalisées pour les sections principales
+RewriteRule ^services/?$ services.php [L]
+RewriteRule ^login/?$ login.php [L]
+RewriteRule ^register/?$ register.php [L]
+RewriteRule ^dashboard/?$ dashboard.php [L]
+RewriteRule ^order/?$ order.php [L]
+RewriteRule ^faq/?$ faq.php [L]
+RewriteRule ^contact/?$ contact.php [L]
+
+# URLs pour l'admin
+RewriteRule ^admin/?$ admin/index.php [L]
+RewriteRule ^admin/([^/]+)/?$ admin/$1.php [L]
+
+# ========================================
+# OPTIMISATIONS DIVERSES
+# ========================================
+
+# Désactiver le listage des répertoires
+Options -Indexes
+
+# Suivre les liens symboliques
+Options +FollowSymLinks
+
+# Charset par défaut
+AddDefaultCharset UTF-8
+
+# Types MIME
+<IfModule mod_mime.c>
+    AddType application/font-woff .woff
+    AddType application/font-woff2 .woff2
+    AddType image/webp .webp
+</IfModule>
+
+# Limite de taille pour les uploads (preuves de paiement)
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+php_value max_execution_time 300
+php_value max_input_time 300
+
+# Configuration session PHP
+php_value session.cookie_httponly 1
+php_value session.cookie_secure 1
+php_value session.use_only_cookies 1
+
+# ========================================
+# PAGES D'ERREUR PERSONNALISÉES
+# ========================================
+
+ErrorDocument 404 /404.php
+ErrorDocument 403 /403.php
+ErrorDocument 500 /500.php
