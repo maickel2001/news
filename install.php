@@ -31,7 +31,8 @@ if ($install_requested) {
         $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
         $pdo = new PDO($dsn, $username, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
         ]);
         
         $installation_status[] = ['step' => 'Connexion DB', 'status' => 'success', 'message' => 'Connexion établie'];
@@ -76,11 +77,14 @@ if ($install_requested) {
             if (empty(trim($query))) continue;
             
             try {
-                $pdo->exec($query);
+                $stmt = $pdo->prepare($query);
+                $stmt->execute();
+                $stmt->closeCursor(); // Libérer le curseur
                 $executed++;
             } catch (PDOException $e) {
                 // Ignorer les erreurs de "table exists already"
-                if (strpos($e->getMessage(), 'already exists') === false) {
+                if (strpos($e->getMessage(), 'already exists') === false && 
+                    strpos($e->getMessage(), 'Duplicate key name') === false) {
                     $errors++;
                     error_log("SQL Error: " . $e->getMessage() . " - Query: " . substr($query, 0, 100));
                 }
@@ -94,10 +98,25 @@ if ($install_requested) {
         $admin_password = password_hash('Admin123!', PASSWORD_ARGON2ID);
         
         try {
-            $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, last_name, status, email_verified, user_type) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE password_hash = ?");
-            $stmt->execute([$admin_email, $admin_password, 'Admin', 'TarantulaSMM', 'active', 1, 'admin', $admin_password]);
+            // Vérifier d'abord si l'utilisateur existe
+            $checkStmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $checkStmt->execute([$admin_email]);
+            $existingUser = $checkStmt->fetch();
+            $checkStmt->closeCursor();
             
-            $installation_status[] = ['step' => 'Admin', 'status' => 'success', 'message' => 'Compte admin créé: admin@tarantulasmm.bj / Admin123!'];
+            if ($existingUser) {
+                // Mettre à jour l'utilisateur existant
+                $updateStmt = $pdo->prepare("UPDATE users SET password_hash = ?, user_type = 'admin', status = 'active' WHERE email = ?");
+                $updateStmt->execute([$admin_password, $admin_email]);
+                $updateStmt->closeCursor();
+                $installation_status[] = ['step' => 'Admin', 'status' => 'success', 'message' => 'Compte admin mis à jour: admin@tarantulasmm.bj / Admin123!'];
+            } else {
+                // Créer un nouvel utilisateur admin
+                $insertStmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, last_name, status, email_verified, user_type) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $insertStmt->execute([$admin_email, $admin_password, 'Admin', 'TarantulaSMM', 'active', 1, 'admin']);
+                $insertStmt->closeCursor();
+                $installation_status[] = ['step' => 'Admin', 'status' => 'success', 'message' => 'Compte admin créé: admin@tarantulasmm.bj / Admin123!'];
+            }
         } catch (PDOException $e) {
             $installation_status[] = ['step' => 'Admin', 'status' => 'warning', 'message' => 'Erreur admin: ' . $e->getMessage()];
         }
@@ -115,8 +134,10 @@ if ($install_requested) {
             try {
                 $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
                 $stmt->execute([$key, $value, $value]);
+                $stmt->closeCursor();
             } catch (PDOException $e) {
                 // Ignorer les erreurs de paramètres
+                error_log("Settings error: " . $e->getMessage());
             }
         }
         

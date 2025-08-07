@@ -57,10 +57,12 @@ if (isset($db)) {
         $existing_tables = [];
         
         foreach ($tables as $table) {
-            $stmt = $db->query("SHOW TABLES LIKE '$table'");
+            $stmt = $db->prepare("SHOW TABLES LIKE ?");
+            $stmt->execute([$table]);
             if ($stmt->rowCount() > 0) {
                 $existing_tables[] = $table;
             }
+            $stmt->closeCursor();
         }
         
         $tests['tables'] = [
@@ -111,8 +113,10 @@ if (isset($tests['files']) && $tests['files']['status'] === 'success') {
 // Test 4: Compte utilisateurs existants
 if (isset($db)) {
     try {
-        $stmt = $db->query("SELECT COUNT(*) as count FROM users");
+        $stmt = $db->prepare("SELECT COUNT(*) as count FROM users");
+        $stmt->execute();
         $result = $stmt->fetch();
+        $stmt->closeCursor();
         $userCount = $result ? $result['count'] : 0;
         
         $tests['users'] = [
@@ -130,8 +134,10 @@ if (isset($db)) {
 if (isset($db)) {
     try {
         // Vérifier si la table system_settings existe
-        $stmt = $db->query("SHOW TABLES LIKE 'system_settings'");
+        $stmt = $db->prepare("SHOW TABLES LIKE ?");
+        $stmt->execute(['system_settings']);
         if ($stmt->rowCount() > 0) {
+            $stmt->closeCursor();
             $settings = [
                 'site_name' => 'TarantulaSMM Bénin',
                 'email_verification_required' => 'false',
@@ -141,10 +147,12 @@ if (isset($db)) {
             foreach ($settings as $key => $value) {
                 $stmt = $db->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
                 $stmt->execute([$key, $value, $value]);
+                $stmt->closeCursor();
             }
             
             $tests['settings'] = ['status' => 'success', 'message' => 'Paramètres système configurés'];
         } else {
+            $stmt->closeCursor();
             $tests['settings'] = ['status' => 'warning', 'message' => 'Table system_settings non trouvée'];
         }
     } catch (Exception $e) {
