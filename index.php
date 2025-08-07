@@ -3,362 +3,572 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TarantulaSMM Bénin - Boost tes Réseaux Sociaux au Bénin</title>
-    <meta name="description" content="Le meilleur SMM Panel au Bénin. Services de boost pour Instagram, TikTok, Facebook, YouTube. Paiement Mobile Money MTN/Moov accepté.">
+    <title>TarantulaSMM Bénin - SMM Panel #1 au Bénin 🇧🇯</title>
+    <meta name="description" content="Le SMM Panel de référence au Bénin. Followers, likes, vues pour Instagram, TikTok, Facebook, YouTube. Paiement Mobile Money MTN/Moov.">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <style>
+        /* === VARIABLES GLOBALES === */
         :root {
-            --primary-color: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --secondary-color: #f59e0b;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --dark-color: #0f172a;
-            --light-color: #f8fafc;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gold: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
-
+        
+        /* === BASE === */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: var(--dark-color);
+            color: var(--dark);
             overflow-x: hidden;
         }
-
+        
+        /* === NAVIGATION === */
         .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
             padding: 1rem 0;
         }
-
-        .navbar.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: var(--shadow-soft);
+        
+        .navbar.transparent {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
+        
         .navbar-brand {
-            font-weight: 800;
+            font-weight: 900;
             font-size: 1.8rem;
-            background: var(--gradient-primary);
+            background: var(--primary);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
+        
         .nav-link {
-            font-weight: 500;
-            color: var(--dark-color) !important;
-            margin: 0 0.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-link:hover {
-            color: var(--primary-color) !important;
-            transform: translateY(-1px);
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 50%;
-            background: var(--gradient-primary);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .btn-primary-custom {
-            background: var(--gradient-primary);
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 50px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: var(--dark) !important;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 25px;
             transition: all 0.3s ease;
-            box-shadow: var(--shadow-soft);
         }
-
-        .btn-primary-custom:hover {
+        
+        .nav-link:hover {
+            background: var(--primary);
+            color: white !important;
             transform: translateY(-2px);
-            box-shadow: var(--shadow-medium);
         }
-
-        .hero-section {
+        
+        .btn-login {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            color: white;
+        }
+        
+        /* === HERO SECTION === */
+        .hero {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             position: relative;
             display: flex;
             align-items: center;
             overflow: hidden;
         }
-
-        .hero-section::before {
+        
+        .hero::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="150" fill="url(%23a)"/><circle cx="800" cy="300" r="100" fill="url(%23a)"/><circle cx="300" cy="700" r="120" fill="url(%23a)"/><circle cx="700" cy="800" r="80" fill="url(%23a)"/></svg>');
-            opacity: 0.3;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+            animation: float 20s ease-in-out infinite;
         }
-
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
         .hero-content {
             position: relative;
             z-index: 2;
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 800;
             color: white;
-            margin-bottom: 1.5rem;
-            line-height: 1.2;
         }
-
-        .hero-subtitle {
-            font-size: 1.3rem;
-            color: rgba(255, 255, 255, 0.9);
+        
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
             margin-bottom: 2rem;
-            font-weight: 400;
+            animation: pulse 3s infinite;
         }
-
-        .stats-section {
-            background: white;
-            padding: 5rem 0;
-            position: relative;
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
         }
-
-        .stat-card {
-            text-align: center;
-            padding: 2rem;
-            border-radius: 15px;
-            background: white;
-            box-shadow: var(--shadow-soft);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+        
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
         }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-medium);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
+        
+        .hero-title .highlight {
+            background: var(--gold);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 0.5rem;
         }
-
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin: 2rem 0;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--warning);
+        }
+        
         .stat-label {
-            font-size: 1rem;
-            color: #64748b;
-            font-weight: 500;
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
-
-        .features-section {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            padding: 5rem 0;
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
-
-        .feature-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: var(--shadow-soft);
+        
+        .btn-hero {
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-weight: 700;
+            text-decoration: none;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary-hero {
+            background: var(--secondary);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary-hero:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            color: white;
+        }
+        
+        .btn-outline-hero {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-outline-hero:hover {
+            background: white;
+            color: var(--dark);
+            border-color: white;
+        }
+        
+        .hero-visual {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .phone-mockup {
+            position: relative;
+            width: 300px;
+            height: 600px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, #1e293b, #334155);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            animation: floatPhone 6s ease-in-out infinite;
+        }
+        
+        @keyframes floatPhone {
+            0%, 100% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-30px) rotateY(5deg); }
+        }
+        
+        .phone-screen {
+            width: 100%;
             height: 100%;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(145deg, #0f172a, #1e293b);
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
         }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-large);
+        
+        .social-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
         }
-
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 15px;
-            background: var(--gradient-primary);
+        
+        .social-icon {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
+            animation: socialFloat 4s ease-in-out infinite;
         }
-
-        .feature-title {
-            font-size: 1.3rem;
+        
+        .social-icon.instagram {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            top: 15%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+        
+        .social-icon.tiktok {
+            background: linear-gradient(45deg, #ff0050, #00f2ea);
+            top: 20%;
+            right: 20%;
+            animation-delay: 1s;
+        }
+        
+        .social-icon.facebook {
+            background: #1877f2;
+            bottom: 25%;
+            left: 20%;
+            animation-delay: 2s;
+        }
+        
+        .social-icon.youtube {
+            background: #ff0000;
+            bottom: 20%;
+            right: 15%;
+            animation-delay: 3s;
+        }
+        
+        @keyframes socialFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.1); }
+        }
+        
+        /* === SERVICES SECTION === */
+        .services {
+            padding: 5rem 0;
+            background: var(--light);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title h2 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: var(--primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .section-title p {
+            font-size: 1.2rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .service-card h4 {
             font-weight: 700;
             margin-bottom: 1rem;
-            color: var(--dark-color);
+            color: var(--dark);
         }
-
-        .feature-description {
+        
+        .service-card p {
             color: #64748b;
-            line-height: 1.6;
+            margin-bottom: 1.5rem;
         }
-
-        .cta-section {
-            background: var(--gradient-primary);
+        
+        .service-price {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: var(--secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* === STATS SECTION === */
+        .stats {
             padding: 5rem 0;
+            background: var(--dark);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
             text-align: center;
         }
-
-        .cta-title {
-            font-size: 2.5rem;
-            font-weight: 800;
+        
+        .stat-item {
+            padding: 2rem;
+        }
+        
+        .stat-item .number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: var(--accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-item .label {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        /* === CTA SECTION === */
+        .cta {
+            padding: 5rem 0;
+            background: var(--primary);
             color: white;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 3rem;
+            font-weight: 900;
             margin-bottom: 1rem;
         }
-
-        .cta-subtitle {
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.9);
+        
+        .cta p {
+            font-size: 1.3rem;
+            opacity: 0.9;
             margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
-
-        .btn-cta {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 1rem 3rem;
-            border-radius: 50px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-cta:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            color: white;
-            box-shadow: var(--shadow-medium);
-        }
-
+        
+        /* === FOOTER === */
         .footer {
-            background: var(--dark-color);
+            background: var(--dark);
             color: white;
             padding: 3rem 0 1rem;
         }
-
-        .footer-links a {
+        
+        .footer h5 {
+            color: var(--warning);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .footer a {
             color: #94a3b8;
             text-decoration: none;
             transition: all 0.3s ease;
-            margin-bottom: 0.5rem;
-            display: block;
         }
-
-        .footer-links a:hover {
-            color: var(--primary-light);
-            transform: translateX(5px);
+        
+        .footer a:hover {
+            color: var(--warning);
         }
-
+        
+        .footer-bottom {
+            border-top: 1px solid #334155;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: #94a3b8;
+        }
+        
         .social-links a {
             display: inline-block;
-            width: 45px;
-            height: 45px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
             text-align: center;
-            line-height: 45px;
-            color: white;
+            line-height: 50px;
             margin: 0 0.5rem;
             transition: all 0.3s ease;
         }
-
+        
         .social-links a:hover {
-            background: var(--primary-color);
             transform: translateY(-3px);
+            box-shadow: var(--shadow);
         }
-
+        
+        /* === RESPONSIVE === */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.5rem;
             }
             
-            .hero-subtitle {
-                font-size: 1.1rem;
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
             }
             
-            .stat-number {
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .phone-mockup {
+                width: 250px;
+                height: 500px;
+            }
+            
+            .section-title h2 {
                 font-size: 2rem;
             }
             
-            .cta-title {
-                font-size: 2rem;
+            .nav-link {
+                margin: 0.2rem 0;
             }
         }
-
-        .floating-animation {
-            animation: floating 3s ease-in-out infinite;
-        }
-
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
+        
+        /* === ANIMATIONS === */
         .fade-in-up {
             opacity: 0;
             transform: translateY(30px);
-            transition: all 0.6s ease;
+            animation: fadeInUp 1s ease forwards;
         }
-
-        .fade-in-up.visible {
-            opacity: 1;
-            transform: translateY(0);
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg fixed-top">
+    <nav class="navbar navbar-expand-lg transparent" id="navbar">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-spider"></i> TarantulaSMM</a>
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-spider me-2"></i>TarantulaSMM
+            </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -371,7 +581,7 @@
                         <a class="nav-link" href="#services">Services</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#avantages">Avantages</a>
+                        <a class="nav-link" href="#prix">Prix</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#contact">Contact</a>
@@ -379,89 +589,65 @@
                 </ul>
                 
                 <div class="d-flex gap-2">
-                    <a href="login.php" class="btn btn-outline-primary">Connexion</a>
-                    <a href="register.php" class="btn btn-primary-custom">S'inscrire</a>
+                    <a href="login.php" class="btn btn-login">
+                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section id="accueil" class="hero-section">
-        <!-- Particules d'arrière-plan -->
-        <div class="particles-bg">
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-        </div>
-        
+    <section id="accueil" class="hero">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <div class="hero-content fade-in-up">
-                        <div class="hero-badge">
-                            <i class="fas fa-crown me-2"></i>#1 SMM Panel au Bénin
+                    <div class="hero-content">
+                        <div class="hero-badge fade-in-up">
+                            <i class="fas fa-crown me-2"></i>#1 SMM Panel au Bénin 🇧🇯
                         </div>
-                        <h1 class="hero-title">
-                            Booste tes <span class="gradient-text">Réseaux Sociaux</span> 
-                            au <span class="benin-flag">Bénin</span>
+                        
+                        <h1 class="hero-title fade-in-up delay-1">
+                            Booste tes <span class="highlight">Réseaux Sociaux</span> 
+                            comme jamais !
                         </h1>
-                        <p class="hero-subtitle">
-                            Le SMM Panel de référence pour tous les créateurs béninois. Followers, likes, vues et plus encore pour 
-                            Instagram, TikTok, Facebook, YouTube. Paiement sécurisé via Mobile Money MTN/Moov.
+                        
+                        <p class="hero-subtitle fade-in-up delay-2">
+                            Le SMM Panel de référence au Bénin. Des milliers de créateurs nous font confiance pour booster 
+                            leur présence sur Instagram, TikTok, Facebook et YouTube.
                         </p>
                         
-                        <!-- Statistiques rapides -->
-                        <div class="hero-stats">
-                            <div class="stat-item">
-                                <span class="stat-number">10K+</span>
+                        <div class="hero-stats fade-in-up delay-3">
+                            <div class="stat">
+                                <span class="stat-number" data-count="15000">0</span>
                                 <span class="stat-label">Clients satisfaits</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-number">24h</span>
-                                <span class="stat-label">Support béninois</span>
+                            <div class="stat">
+                                <span class="stat-number" data-count="24">0</span>
+                                <span class="stat-label">Support 24h/7j</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-number">50+</span>
-                                <span class="stat-label">Services disponibles</span>
+                            <div class="stat">
+                                <span class="stat-number" data-count="99">0</span>
+                                <span class="stat-label">% de réussite</span>
                             </div>
                         </div>
                         
-                        <div class="hero-actions">
-                            <a href="register.php" class="btn btn-cta pulse-animation">
+                        <div class="hero-buttons fade-in-up delay-4">
+                            <a href="register.php" class="btn btn-hero btn-primary-hero">
                                 <i class="fas fa-rocket me-2"></i>Commencer Maintenant
-                                <span class="btn-shine"></span>
                             </a>
-                            <a href="#services" class="btn btn-outline-light glass-btn">
-                                <i class="fas fa-play me-2"></i>Voir la Démo
+                            <a href="#services" class="btn btn-hero btn-outline-hero">
+                                <i class="fas fa-play me-2"></i>Voir les Services
                             </a>
-                        </div>
-                        
-                        <!-- Badges de confiance -->
-                        <div class="trust-badges">
-                            <div class="badge-item">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>100% Sécurisé</span>
-                            </div>
-                            <div class="badge-item">
-                                <i class="fas fa-bolt"></i>
-                                <span>Livraison Rapide</span>
-                            </div>
-                            <div class="badge-item">
-                                <i class="fas fa-heart"></i>
-                                <span>Support 24/7</span>
-                            </div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="col-lg-6">
-                    <div class="hero-visual">
-                        <!-- Téléphone 3D mockup -->
+                    <div class="hero-visual fade-in-up delay-2">
                         <div class="phone-mockup">
                             <div class="phone-screen">
-                                <div class="social-icons-float">
+                                <div class="social-icons">
                                     <div class="social-icon instagram">
                                         <i class="fab fa-instagram"></i>
                                     </div>
@@ -475,183 +661,105 @@
                                         <i class="fab fa-youtube"></i>
                                     </div>
                                 </div>
-                                
-                                <!-- Notifications de boost -->
-                                <div class="boost-notifications">
-                                    <div class="notification n1">
-                                        <i class="fas fa-heart text-danger"></i>
-                                        +100 Likes reçus
-                                    </div>
-                                    <div class="notification n2">
-                                        <i class="fas fa-users text-primary"></i>
-                                        +50 Followers
-                                    </div>
-                                    <div class="notification n3">
-                                        <i class="fas fa-eye text-success"></i>
-                                        +1000 Vues
-                                    </div>
-                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Éléments décoratifs -->
-                        <div class="floating-elements">
-                            <div class="float-icon f1"><i class="fas fa-hashtag"></i></div>
-                            <div class="float-icon f2"><i class="fas fa-at"></i></div>
-                            <div class="float-icon f3"><i class="fas fa-thumbs-up"></i></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Indicateur de scroll -->
-        <div class="scroll-indicator">
-            <div class="scroll-mouse">
-                <div class="scroll-wheel"></div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nos Services Premium</h2>
+                <p>Des services de qualité supérieure pour tous les réseaux sociaux populaires</p>
             </div>
-            <span>Scroll pour découvrir</span>
+            
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="service-card fade-in-up">
+                        <div class="service-icon" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <h4>Instagram</h4>
+                        <p>Followers, likes, vues stories, commentaires de qualité premium</p>
+                        <div class="service-price">À partir de 500 FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="service-card fade-in-up delay-1">
+                        <div class="service-icon" style="background: linear-gradient(45deg, #ff0050, #00f2ea);">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <h4>TikTok</h4>
+                        <p>Followers, likes, vues, partages pour exploser sur TikTok</p>
+                        <div class="service-price">À partir de 400 FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="service-card fade-in-up delay-2">
+                        <div class="service-icon" style="background: #1877f2;">
+                            <i class="fab fa-facebook"></i>
+                        </div>
+                        <h4>Facebook</h4>
+                        <p>Likes de pages, followers, réactions, partages authentiques</p>
+                        <div class="service-price">À partir de 600 FCFA</div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="service-card fade-in-up delay-3">
+                        <div class="service-icon" style="background: #ff0000;">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h4>YouTube</h4>
+                        <p>Abonnés, vues, likes, commentaires pour faire décoller ta chaîne</p>
+                        <div class="service-price">À partir de 800 FCFA</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Stats Section -->
-    <section class="stats-section">
+    <section class="stats">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="stat-card fade-in-up">
-                        <div class="stat-number" data-count="15000">0</div>
-                        <div class="stat-label">Commandes Traitées</div>
-                    </div>
+            <div class="stats-grid">
+                <div class="stat-item fade-in-up">
+                    <span class="number" data-count="15000">0</span>
+                    <span class="label">Clients Satisfaits</span>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="stat-card fade-in-up">
-                        <div class="stat-number" data-count="2500">0</div>
-                        <div class="stat-label">Clients Satisfaits</div>
-                    </div>
+                <div class="stat-item fade-in-up delay-1">
+                    <span class="number" data-count="2500000">0</span>
+                    <span class="label">Followers Livrés</span>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="stat-card fade-in-up">
-                        <div class="stat-number" data-count="98">0</div>
-                        <div class="stat-label">% de Réussite</div>
-                    </div>
+                <div class="stat-item fade-in-up delay-2">
+                    <span class="number" data-count="98">0</span>
+                    <span class="label">% Taux de Réussite</span>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="stat-card fade-in-up">
-                        <div class="stat-number" data-count="24">0</div>
-                        <div class="stat-label">Heures Support</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="avantages" class="features-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-12 text-center mb-5">
-                    <h2 class="display-4 fw-bold mb-3">Pourquoi Choisir TarantulaSMM ?</h2>
-                    <p class="lead text-muted">Des services de qualité premium adaptés au marché béninois</p>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card fade-in-up">
-                        <div class="feature-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h3 class="feature-title">Paiement Mobile Money</h3>
-                        <p class="feature-description">
-                            Paiement facile et sécurisé via MTN Money et Moov Money. 
-                            Adapté aux habitudes de paiement béninoises.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card fade-in-up">
-                        <div class="feature-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <h3 class="feature-title">Livraison Rapide</h3>
-                        <p class="feature-description">
-                            Commandes traitées en moins de 24h. 
-                            Suivi en temps réel et notifications automatiques.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card fade-in-up">
-                        <div class="feature-icon">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h3 class="feature-title">100% Sécurisé</h3>
-                        <p class="feature-description">
-                            Vos données sont protégées. Pas de mot de passe requis 
-                            pour vos comptes sociaux.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card fade-in-up">
-                        <div class="feature-icon">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                        <h3 class="feature-title">Support 24/7</h3>
-                        <p class="feature-description">
-                            Notre équipe béninoise vous accompagne 24h/24 
-                            via WhatsApp, email et système de tickets.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card fade-in-up">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="feature-title">Qualité Premium</h3>
-                        <p class="feature-description">
-                            Followers et interactions de haute qualité. 
-                            Comptes réels, engagement authentique.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card fade-in-up">
-                        <div class="feature-icon">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <h3 class="feature-title">Prix Compétitifs</h3>
-                        <p class="feature-description">
-                            Les meilleurs tarifs du marché béninois. 
-                            Promotions régulières et packs avantageux.
-                        </p>
-                    </div>
+                <div class="stat-item fade-in-up delay-3">
+                    <span class="number" data-count="24">0</span>
+                    <span class="label">Support 24h/7j</span>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
+    <section id="prix" class="cta">
         <div class="container">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <h2 class="cta-title">Prêt à Booster ton Influence ?</h2>
-                    <p class="cta-subtitle">
-                        Rejoins des milliers de créateurs béninois qui nous font confiance
-                    </p>
-                    <a href="register.php" class="btn-cta">
-                        <i class="fas fa-user-plus me-2"></i>Créer mon Compte Gratuitement
-                    </a>
-                </div>
-            </div>
+            <h2>Prêt à Exploser sur les Réseaux ?</h2>
+            <p>
+                Rejoins des milliers de créateurs béninois qui ont choisi TarantulaSMM pour 
+                booster leur présence en ligne. Paiement facile via Mobile Money !
+            </p>
+            <a href="register.php" class="btn btn-hero btn-outline-hero">
+                <i class="fas fa-star me-2"></i>Créer mon Compte Gratuit
+            </a>
         </div>
     </section>
 
@@ -659,94 +767,71 @@
     <footer id="contact" class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <h5 class="fw-bold mb-3">
-                        <i class="fas fa-spider me-2"></i>TarantulaSMM Bénin
-                    </h5>
-                    <p class="text-muted">
-                        Le meilleur SMM Panel du Bénin. Boost professionnel 
-                        pour tous tes réseaux sociaux avec paiement Mobile Money.
-                    </p>
-                    <div class="social-links mt-3">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5><i class="fas fa-spider me-2"></i>TarantulaSMM Bénin</h5>
+                    <p>Le SMM Panel de référence au Bénin. Boost tes réseaux sociaux avec nos services premium et notre support béninois 24h/7j.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-tiktok"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
                 
                 <div class="col-lg-2 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Services</h6>
-                    <div class="footer-links">
-                        <a href="#">Instagram</a>
-                        <a href="#">TikTok</a>
-                        <a href="#">Facebook</a>
-                        <a href="#">YouTube</a>
-                        <a href="#">Spotify</a>
-                    </div>
+                    <h5>Services</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">TikTok</a></li>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">YouTube</a></li>
+                    </ul>
                 </div>
                 
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Liens Utiles</h6>
-                    <div class="footer-links">
-                        <a href="faq.php">FAQ</a>
-                        <a href="how-to-pay.php">Comment Payer</a>
-                        <a href="terms.php">Conditions</a>
-                        <a href="privacy.php">Confidentialité</a>
-                    </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Centre d'aide</a></li>
+                        <li><a href="#">Chat en direct</a></li>
+                        <li><a href="#">WhatsApp: +229 97 00 00 00</a></li>
+                        <li><a href="#">Email: support@tarantulasmm.bj</a></li>
+                    </ul>
                 </div>
                 
-                <div class="col-lg-4 mb-4">
-                    <h6 class="fw-bold mb-3">Contact</h6>
-                    <div class="footer-links">
-                        <a href="mailto:support@tarantulasmm.bj">
-                            <i class="fas fa-envelope me-2"></i>support@tarantulasmm.bj
-                        </a>
-                        <a href="https://wa.me/22997000000">
-                            <i class="fab fa-whatsapp me-2"></i>+229 97 00 00 00
-                        </a>
-                        <a href="#">
-                            <i class="fas fa-map-marker-alt me-2"></i>Cotonou, Bénin
-                        </a>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5>Paiement</h5>
+                    <p>Nous acceptons :</p>
+                    <div class="d-flex gap-2 mb-3">
+                        <span class="badge bg-warning">MTN Mobile Money</span>
+                        <span class="badge bg-primary">Moov Money</span>
                     </div>
+                    <p><small>Paiements 100% sécurisés</small></p>
                 </div>
             </div>
             
-            <hr class="my-4" style="border-color: #334155;">
-            
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="text-muted mb-0">
-                        &copy; 2024 TarantulaSMM Bénin. Tous droits réservés.
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-heart text-danger"></i> Fait avec amour au Bénin
-                    </p>
-                </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TarantulaSMM Bénin. Tous droits réservés. | <a href="#">Conditions d'utilisation</a> | <a href="#">Politique de confidentialité</a></p>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JS -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Custom JavaScript -->
     <script>
         // Navbar scroll effect
         window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 100) {
-                navbar.classList.add('scrolled');
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.remove('transparent');
             } else {
-                navbar.classList.remove('scrolled');
+                navbar.classList.add('transparent');
             }
         });
-
+        
         // Counter animation
         function animateCounters() {
-            const counters = document.querySelectorAll('.stat-number[data-count]');
+            const counters = document.querySelectorAll('[data-count]');
             
             counters.forEach(counter => {
                 const target = parseInt(counter.getAttribute('data-count'));
@@ -765,21 +850,35 @@
                 }, 16);
             });
         }
-
-        // Fade in animation
-        function fadeInOnScroll() {
-            const elements = document.querySelectorAll('.fade-in-up');
-            
-            elements.forEach(element => {
-                const elementTop = element.getBoundingClientRect().top;
-                const elementVisible = 150;
-                
-                if (elementTop < window.innerHeight - elementVisible) {
-                    element.classList.add('visible');
+        
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    
+                    // Trigger counter animation for stats
+                    if (entry.target.classList.contains('stats')) {
+                        animateCounters();
+                    }
                 }
             });
-        }
-
+        }, observerOptions);
+        
+        // Observe all animated elements
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            observer.observe(el);
+        });
+        
+        document.querySelectorAll('.stats').forEach(el => {
+            observer.observe(el);
+        });
+        
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -793,15 +892,8 @@
                 }
             });
         });
-
-        // Initialize animations
-        window.addEventListener('scroll', fadeInOnScroll);
-        window.addEventListener('load', () => {
-            fadeInOnScroll();
-            setTimeout(animateCounters, 500);
-        });
-
-        // Mobile menu auto-close
+        
+        // Mobile menu close on link click
         document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 const navbarCollapse = document.querySelector('.navbar-collapse');
