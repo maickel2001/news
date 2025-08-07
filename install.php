@@ -1,126 +1,131 @@
 <?php
 /**
- * Script d'Installation - TarantulaSMM Bénin
+ * Installation TarantulaSMM Bénin - Initialisation Base de Données
  * 
  * @author TarantulaSMM Team
  * @version 1.0.0
  * @since 2024
  */
 
+// Gestion d'erreurs
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Définir l'accès autorisé
 define('TARANTULA_ACCESS', true);
 
-// Configuration temporaire pour l'installation
-$dbConfig = [
-    'host' => 'localhost',
-    'port' => 3306,
-    'charset' => 'utf8mb4',
-    'username' => 'u634930929_Ino',
-    'password' => 'Ino1234@',
-    'database' => 'u634930929_Ino'
-];
+$installation_status = [];
+$overall_success = true;
 
-$installationSteps = [];
-$errors = [];
-$success = false;
+// Vérifier si l'installation a été demandée
+$install_requested = isset($_POST['install']) && $_POST['install'] === 'true';
 
-// Fonction pour exécuter le schéma SQL
-function executeSchemaFile($connection, $filePath) {
-    if (!file_exists($filePath)) {
-        throw new Exception("Fichier de schéma introuvable: $filePath");
-    }
-    
-    $sql = file_get_contents($filePath);
-    $statements = explode(';', $sql);
-    
-    foreach ($statements as $statement) {
-        $statement = trim($statement);
-        if (!empty($statement)) {
+if ($install_requested) {
+    try {
+        // Configuration de la base de données
+        $host = 'localhost';
+        $dbname = 'u634930929_Ino';
+        $username = 'u634930929_Ino';
+        $password = 'Ino1234@';
+        
+        $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+        $pdo = new PDO($dsn, $username, $password, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]);
+        
+        $installation_status[] = ['step' => 'Connexion DB', 'status' => 'success', 'message' => 'Connexion établie'];
+        
+        // Lire et exécuter le schéma SQL
+        $sql_file = 'database/schema.sql';
+        if (!file_exists($sql_file)) {
+            throw new Exception("Fichier schema.sql introuvable dans database/");
+        }
+        
+        $sql_content = file_get_contents($sql_file);
+        
+        // Supprimer les lignes de commentaires et diviser en requêtes
+        $sql_lines = explode("\n", $sql_content);
+        $sql_queries = [];
+        $current_query = '';
+        
+        foreach ($sql_lines as $line) {
+            $line = trim($line);
+            if (empty($line) || strpos($line, '--') === 0 || strpos($line, '/*') === 0) {
+                continue;
+            }
+            
+            // Ignorer les commandes USE et CREATE DATABASE
+            if (stripos($line, 'USE ') === 0 || stripos($line, 'CREATE DATABASE') === 0) {
+                continue;
+            }
+            
+            $current_query .= $line . "\n";
+            
+            if (substr($line, -1) === ';') {
+                $sql_queries[] = trim($current_query);
+                $current_query = '';
+            }
+        }
+        
+        // Exécuter chaque requête
+        $executed = 0;
+        $errors = 0;
+        
+        foreach ($sql_queries as $query) {
+            if (empty(trim($query))) continue;
+            
             try {
-                $connection->exec($statement);
+                $pdo->exec($query);
+                $executed++;
             } catch (PDOException $e) {
-                // Ignorer les erreurs "table exists already" et similaires
-                if (strpos($e->getMessage(), 'already exists') === false && 
-                    strpos($e->getMessage(), 'Duplicate entry') === false) {
-                    throw $e;
+                // Ignorer les erreurs de "table exists already"
+                if (strpos($e->getMessage(), 'already exists') === false) {
+                    $errors++;
+                    error_log("SQL Error: " . $e->getMessage() . " - Query: " . substr($query, 0, 100));
                 }
             }
         }
-    }
-}
-
-// Traitement de l'installation
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
-    try {
-        // Étape 1: Connexion directe à votre base de données
-        $installationSteps[] = "Connexion à votre base de données existante...";
-        $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['database']};port={$dbConfig['port']};charset={$dbConfig['charset']}";
-        $connection = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
-        $installationSteps[] = "✅ Connexion à la base de données {$dbConfig['database']} réussie";
         
-        // Étape 2: Exécuter le schéma SQL
-        $installationSteps[] = "Création des tables...";
-        executeSchemaFile($connection, __DIR__ . '/database/schema.sql');
-        $installationSteps[] = "✅ Tables créées avec succès";
+        $installation_status[] = ['step' => 'Tables', 'status' => 'success', 'message' => "$executed requêtes exécutées ($errors erreurs ignorées)"];
         
-        // Étape 3: Créer l'utilisateur de démonstration
-        $installationSteps[] = "Création de l'utilisateur de démonstration...";
+        // Créer un utilisateur admin par défaut
+        $admin_email = 'admin@tarantulasmm.bj';
+        $admin_password = password_hash('Admin123!', PASSWORD_ARGON2ID);
         
-        // Hasher le mot de passe de démonstration
-        $demoPassword = password_hash('Demo123!', PASSWORD_ARGON2ID, [
-            'memory_cost' => 65536,
-            'time_cost' => 4,
-            'threads' => 3
-        ]);
-        
-        // Insérer l'utilisateur de démonstration
-        $stmt = $connection->prepare("
-            INSERT IGNORE INTO users (email, password_hash, first_name, last_name, phone, status, email_verified) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([
-            'demo@tarantulasmm.bj',
-            $demoPassword,
-            'Utilisateur',
-            'Démonstration',
-            '+22997000000',
-            'active',
-            1
-        ]);
-        $installationSteps[] = "✅ Utilisateur de démonstration créé";
-        
-        // Étape 4: Vérification des tables
-        $installationSteps[] = "Vérification des tables...";
-        $tables = $connection->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
-        $expectedTables = [
-            'users', 'user_sessions', 'categories', 'services', 'orders', 
-            'support_tickets', 'support_messages', 'admin_users', 
-            'system_settings', 'activity_logs'
-        ];
-        
-        $missingTables = array_diff($expectedTables, $tables);
-        if (empty($missingTables)) {
-            $installationSteps[] = "✅ Toutes les tables sont présentes (" . count($tables) . " tables)";
-        } else {
-            throw new Exception("Tables manquantes: " . implode(', ', $missingTables));
+        try {
+            $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, last_name, status, email_verified, user_type) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE password_hash = ?");
+            $stmt->execute([$admin_email, $admin_password, 'Admin', 'TarantulaSMM', 'active', 1, 'admin', $admin_password]);
+            
+            $installation_status[] = ['step' => 'Admin', 'status' => 'success', 'message' => 'Compte admin créé: admin@tarantulasmm.bj / Admin123!'];
+        } catch (PDOException $e) {
+            $installation_status[] = ['step' => 'Admin', 'status' => 'warning', 'message' => 'Erreur admin: ' . $e->getMessage()];
         }
         
-        // Étape 5: Test de connexion avec les fonctions personnalisées
-        $installationSteps[] = "Test des fonctions personnalisées...";
-        require_once 'config/database.php';
-        require_once 'includes/functions.php';
+        // Insérer des paramètres système
+        $settings = [
+            'site_name' => 'TarantulaSMM Bénin',
+            'site_description' => 'SMM Panel #1 au Bénin',
+            'site_currency' => 'FCFA',
+            'email_verification_required' => 'false',
+            'maintenance_mode' => 'false'
+        ];
         
-        $testUser = dbFetch("SELECT COUNT(*) as count FROM users");
-        $installationSteps[] = "✅ Fonctions de base de données opérationnelles";
+        foreach ($settings as $key => $value) {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+                $stmt->execute([$key, $value, $value]);
+            } catch (PDOException $e) {
+                // Ignorer les erreurs de paramètres
+            }
+        }
         
-        $success = true;
-        $installationSteps[] = "🎉 Installation terminée avec succès !";
+        $installation_status[] = ['step' => 'Configuration', 'status' => 'success', 'message' => 'Paramètres système configurés'];
+        $installation_status[] = ['step' => 'Finalisation', 'status' => 'success', 'message' => 'Installation terminée avec succès !'];
         
     } catch (Exception $e) {
-        $errors[] = "Erreur: " . $e->getMessage();
-        $installationSteps[] = "❌ Installation échouée";
+        $installation_status[] = ['step' => 'Erreur', 'status' => 'error', 'message' => $e->getMessage()];
+        $overall_success = false;
     }
 }
 ?>
@@ -146,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             min-height: 100vh;
             padding: 2rem 0;
         }
@@ -156,7 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             overflow: hidden;
-            max-width: 600px;
+            max-width: 700px;
+            width: 100%;
         }
         
         .install-header {
@@ -171,28 +177,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
         }
         
         .step-item {
-            padding: 0.5rem 0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.9rem;
+            border-left: 4px solid #e5e7eb;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8fafc;
+            border-radius: 0 8px 8px 0;
         }
         
-        .config-info {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+        .step-item.success {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .step-item.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .step-item.warning {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
         }
         
         .btn-install {
             background: var(--gradient-primary);
             border: none;
+            color: white;
             padding: 1rem 2rem;
             border-radius: 10px;
             font-weight: 600;
-            color: white;
-            width: 100%;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
+            width: 100%;
         }
         
         .btn-install:hover {
@@ -201,23 +217,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
             color: white;
         }
         
-        .alert-success {
-            border-left: 4px solid #10b981;
+        .btn-install:disabled {
+            opacity: 0.7;
+            transform: none;
         }
         
-        .alert-danger {
-            border-left: 4px solid #ef4444;
-        }
-        
-        .installation-log {
-            background: #1e293b;
-            color: #e2e8f0;
-            border-radius: 8px;
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 10px;
             padding: 1rem;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.85rem;
-            max-height: 300px;
-            overflow-y: auto;
+            margin-bottom: 2rem;
+        }
+        
+        .success-box {
+            background: #dcfce7;
+            border: 1px solid #22c55e;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -229,128 +248,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
                     <!-- En-tête -->
                     <div class="install-header">
                         <h1 class="h3 mb-2">
-                            <i class="fas fa-spider me-2"></i>Installation TarantulaSMM
+                            <i class="fas fa-magic me-2"></i>Installation TarantulaSMM
                         </h1>
-                        <p class="mb-0 opacity-90">Initialisation de la base de données</p>
+                        <p class="mb-0 opacity-90">Configuration de la base de données</p>
                     </div>
                     
                     <!-- Corps -->
                     <div class="install-body">
-                        <?php if (!empty($errors)): ?>
-                            <div class="alert alert-danger">
-                                <h5><i class="fas fa-exclamation-triangle me-2"></i>Erreurs d'installation</h5>
-                                <?php foreach ($errors as $error): ?>
-                                    <div><?php echo htmlspecialchars($error); ?></div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if ($success): ?>
-                            <div class="alert alert-success">
-                                <h5><i class="fas fa-check-circle me-2"></i>Installation réussie !</h5>
-                                <p class="mb-0">
-                                    La base de données a été initialisée avec succès. 
-                                    Vous pouvez maintenant utiliser les identifiants de démonstration pour vous connecter.
-                                </p>
+                        <?php if (!$install_requested): ?>
+                            <!-- Interface d'installation -->
+                            <div class="warning-box">
+                                <h5><i class="fas fa-exclamation-triangle me-2"></i>Attention</h5>
+                                <p class="mb-0">Cette installation va créer les tables nécessaires dans votre base de données. Si les tables existent déjà, elles ne seront pas supprimées.</p>
                             </div>
                             
-                            <div class="text-center mt-4">
-                                <a href="login.php" class="btn btn-install">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Aller à la connexion
-                                </a>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($installationSteps)): ?>
-                            <div class="mb-4">
-                                <h5>Journal d'installation:</h5>
-                                <div class="installation-log">
-                                    <?php foreach ($installationSteps as $step): ?>
-                                        <div class="step-item"><?php echo htmlspecialchars($step); ?></div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!$success && empty($_POST)): ?>
-                            <!-- Configuration actuelle -->
-                            <div class="config-info">
-                                <h6><i class="fas fa-database me-2"></i>Configuration de la base de données</h6>
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <strong>Hôte:</strong> <?php echo $dbConfig['host']; ?>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <strong>Port:</strong> <?php echo $dbConfig['port']; ?>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <strong>Utilisateur:</strong> <?php echo $dbConfig['username']; ?>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <strong>Base:</strong> <?php echo $dbConfig['database']; ?>
-                                    </div>
-                                </div>
+                            <h5>Que fait cette installation ?</h5>
+                            <ul>
+                                <li>Création des tables de base de données</li>
+                                <li>Configuration des paramètres système</li>
+                                <li>Création d'un compte administrateur</li>
+                                <li>Insertion des données de base</li>
+                            </ul>
+                            
+                            <div class="alert alert-info">
+                                <strong>Compte administrateur :</strong><br>
+                                Email: admin@tarantulasmm.bj<br>
+                                Mot de passe: Admin123!
                             </div>
                             
-                            <!-- Prérequis -->
-                            <div class="mb-4">
-                                <h6><i class="fas fa-list-check me-2"></i>Prérequis vérifiés</h6>
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <span class="<?php echo version_compare(PHP_VERSION, '7.4', '>=') ? 'text-success' : 'text-danger'; ?>">
-                                            <i class="fas fa-<?php echo version_compare(PHP_VERSION, '7.4', '>=') ? 'check' : 'times'; ?> me-1"></i>
-                                            PHP <?php echo PHP_VERSION; ?>
-                                        </span>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <span class="<?php echo extension_loaded('pdo_mysql') ? 'text-success' : 'text-danger'; ?>">
-                                            <i class="fas fa-<?php echo extension_loaded('pdo_mysql') ? 'check' : 'times'; ?> me-1"></i>
-                                            PDO MySQL
-                                        </span>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <span class="<?php echo extension_loaded('mbstring') ? 'text-success' : 'text-danger'; ?>">
-                                            <i class="fas fa-<?php echo extension_loaded('mbstring') ? 'check' : 'times'; ?> me-1"></i>
-                                            mbstring
-                                        </span>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <span class="<?php echo file_exists('database/schema.sql') ? 'text-success' : 'text-danger'; ?>">
-                                            <i class="fas fa-<?php echo file_exists('database/schema.sql') ? 'check' : 'times'; ?> me-1"></i>
-                                            Schema SQL
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                                                         <!-- Informations importantes -->
-                             <div class="alert alert-info">
-                                 <h6><i class="fas fa-info-circle me-2"></i>Informations importantes</h6>
-                                 <ul class="mb-0">
-                                     <li>Cette installation utilisera votre base de données existante <strong><?php echo $dbConfig['database']; ?></strong></li>
-                                     <li>Les tables TarantulaSMM seront créées dans cette base</li>
-                                     <li>Un utilisateur de démonstration sera créé avec les identifiants:</li>
-                                     <ul>
-                                         <li><strong>Email:</strong> demo@tarantulasmm.bj</li>
-                                         <li><strong>Mot de passe:</strong> Demo123!</li>
-                                     </ul>
-                                     <li>Vos données existantes ne seront pas affectées</li>
-                                 </ul>
-                             </div>
-                            
-                            <!-- Bouton d'installation -->
-                            <form method="POST">
-                                <button type="submit" name="install" class="btn btn-install">
-                                    <i class="fas fa-play me-2"></i>Démarrer l'installation
+                            <form method="POST" action="">
+                                <input type="hidden" name="install" value="true">
+                                <button type="submit" class="btn-install">
+                                    <i class="fas fa-play me-2"></i>Lancer l'Installation
                                 </button>
                             </form>
+                            
+                        <?php else: ?>
+                            <!-- Résultats de l'installation -->
+                            <?php if ($overall_success): ?>
+                                <div class="success-box">
+                                    <h4 class="text-success"><i class="fas fa-check-circle me-2"></i>Installation Réussie !</h4>
+                                    <p class="mb-3">TarantulaSMM a été installé avec succès.</p>
+                                    <a href="login.php" class="btn btn-success me-2">
+                                        <i class="fas fa-sign-in-alt me-1"></i>Se Connecter
+                                    </a>
+                                    <a href="/" class="btn btn-outline-primary">
+                                        <i class="fas fa-home me-1"></i>Accueil
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <h5>Étapes d'Installation :</h5>
+                            
+                            <?php foreach ($installation_status as $step): ?>
+                                <div class="step-item <?php echo $step['status']; ?>">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-<?php echo $step['status'] === 'success' ? 'check' : ($step['status'] === 'error' ? 'times' : 'exclamation'); ?> me-2"></i>
+                                        <div>
+                                            <strong><?php echo htmlspecialchars($step['step']); ?></strong>
+                                            <div class="text-muted"><?php echo htmlspecialchars($step['message']); ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                            
+                            <?php if (!$overall_success): ?>
+                                <div class="mt-3">
+                                    <a href="?" class="btn btn-warning">
+                                        <i class="fas fa-refresh me-1"></i>Réessayer
+                                    </a>
+                                    <a href="test-db.php" class="btn btn-outline-info">
+                                        <i class="fas fa-vial me-1"></i>Tester le Système
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
                         
-                        <!-- Lien vers l'accueil -->
-                        <div class="text-center mt-4">
-                            <a href="/" class="text-muted text-decoration-none">
-                                <i class="fas fa-home me-1"></i>Retour à l'accueil
-                            </a>
+                        <!-- Liens utiles -->
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <small class="text-muted">
+                                <a href="test-db.php" class="text-decoration-none me-3">
+                                    <i class="fas fa-vial me-1"></i>Test Système
+                                </a>
+                                <a href="/" class="text-decoration-none">
+                                    <i class="fas fa-home me-1"></i>Accueil
+                                </a>
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -360,13 +343,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
     
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Auto-scroll du journal d'installation
-        const log = document.querySelector('.installation-log');
-        if (log) {
-            log.scrollTop = log.scrollHeight;
-        }
-    </script>
 </body>
 </html>

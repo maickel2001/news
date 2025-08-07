@@ -7,99 +7,151 @@
  * @since 2024
  */
 
+// Gestion d'erreurs pour affichage
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Définir l'accès autorisé
 define('TARANTULA_ACCESS', true);
-
-// Inclure les fichiers nécessaires
-require_once 'config/database.php';
-require_once 'includes/functions.php';
 
 $tests = [];
 $overall_status = 'success';
 
+// Test préliminaire - Vérifier les fichiers
+if (!file_exists('config/database.php')) {
+    $tests['files'] = ['status' => 'error', 'message' => 'config/database.php introuvable'];
+    $overall_status = 'error';
+} elseif (!file_exists('includes/functions.php')) {
+    $tests['files'] = ['status' => 'error', 'message' => 'includes/functions.php introuvable'];
+    $overall_status = 'error';
+} else {
+    try {
+        // Inclure les fichiers nécessaires
+        require_once 'config/database.php';
+        require_once 'includes/functions.php';
+        $tests['files'] = ['status' => 'success', 'message' => 'Fichiers chargés avec succès'];
+    } catch (Exception $e) {
+        $tests['files'] = ['status' => 'error', 'message' => 'Erreur lors du chargement: ' . $e->getMessage()];
+        $overall_status = 'error';
+    }
+}
+
 // Test 1: Connexion base de données
-try {
-    $db = Database::getInstance();
-    $tests['database'] = ['status' => 'success', 'message' => 'Connexion réussie'];
-} catch (Exception $e) {
-    $tests['database'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
+if (isset($tests['files']) && $tests['files']['status'] === 'success') {
+    try {
+        $db = Database::getInstance();
+        $tests['database'] = ['status' => 'success', 'message' => 'Connexion réussie'];
+    } catch (Exception $e) {
+        $tests['database'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
+        $overall_status = 'error';
+    }
+} else {
+    $tests['database'] = ['status' => 'error', 'message' => 'Impossible de tester - fichiers non chargés'];
     $overall_status = 'error';
 }
 
 // Test 2: Vérification des tables
-try {
-    $tables = ['users', 'user_sessions', 'categories', 'services', 'orders', 'support_tickets', 'support_messages', 'admin_users', 'system_settings', 'activity_logs'];
-    $existing_tables = [];
-    
-    foreach ($tables as $table) {
-        $stmt = $db->query("SHOW TABLES LIKE '$table'");
-        if ($stmt->rowCount() > 0) {
-            $existing_tables[] = $table;
+if (isset($db)) {
+    try {
+        $tables = ['users', 'user_sessions', 'categories', 'services', 'orders', 'support_tickets', 'support_messages', 'admin_users', 'system_settings', 'activity_logs'];
+        $existing_tables = [];
+        
+        foreach ($tables as $table) {
+            $stmt = $db->query("SHOW TABLES LIKE '$table'");
+            if ($stmt->rowCount() > 0) {
+                $existing_tables[] = $table;
+            }
         }
+        
+        $tests['tables'] = [
+            'status' => count($existing_tables) === count($tables) ? 'success' : 'warning',
+            'message' => count($existing_tables) . '/' . count($tables) . ' tables trouvées',
+            'details' => $existing_tables
+        ];
+        
+        if (count($existing_tables) !== count($tables)) {
+            if ($overall_status !== 'error') $overall_status = 'warning';
+        }
+    } catch (Exception $e) {
+        $tests['tables'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
+        $overall_status = 'error';
     }
-    
-    $tests['tables'] = [
-        'status' => count($existing_tables) === count($tables) ? 'success' : 'warning',
-        'message' => count($existing_tables) . '/' . count($tables) . ' tables trouvées',
-        'details' => $existing_tables
-    ];
-    
-    if (count($existing_tables) !== count($tables)) {
-        $overall_status = 'warning';
-    }
-} catch (Exception $e) {
-    $tests['tables'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
-    $overall_status = 'error';
+} else {
+    $tests['tables'] = ['status' => 'error', 'message' => 'Base de données non connectée'];
 }
 
 // Test 3: Fonctions utilitaires
-try {
-    $token = generateSecureToken();
-    $hash = hashPassword('test123');
-    $verify = verifyPassword('test123', $hash);
-    
-    $tests['functions'] = [
-        'status' => $verify ? 'success' : 'error',
-        'message' => $verify ? 'Fonctions de sécurité OK' : 'Problème avec les fonctions'
-    ];
-    
-    if (!$verify) {
+if (isset($tests['files']) && $tests['files']['status'] === 'success') {
+    try {
+        if (function_exists('generateSecureToken') && function_exists('hashPassword') && function_exists('verifyPassword')) {
+            $token = generateSecureToken();
+            $hash = hashPassword('test123');
+            $verify = verifyPassword('test123', $hash);
+            
+            $tests['functions'] = [
+                'status' => $verify ? 'success' : 'error',
+                'message' => $verify ? 'Fonctions de sécurité OK' : 'Problème avec les fonctions'
+            ];
+            
+            if (!$verify && $overall_status !== 'error') {
+                $overall_status = 'error';
+            }
+        } else {
+            $tests['functions'] = ['status' => 'error', 'message' => 'Fonctions de sécurité non trouvées'];
+            $overall_status = 'error';
+        }
+    } catch (Exception $e) {
+        $tests['functions'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
         $overall_status = 'error';
     }
-} catch (Exception $e) {
-    $tests['functions'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
-    $overall_status = 'error';
+} else {
+    $tests['functions'] = ['status' => 'error', 'message' => 'Fichiers non chargés - impossible de tester'];
 }
 
 // Test 4: Compte utilisateurs existants
-try {
-    $stmt = $db->query("SELECT COUNT(*) as count FROM users");
-    $userCount = $stmt->fetch()['count'];
-    
-    $tests['users'] = [
-        'status' => 'info',
-        'message' => "$userCount utilisateur(s) dans la base"
-    ];
-} catch (Exception $e) {
-    $tests['users'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
+if (isset($db)) {
+    try {
+        $stmt = $db->query("SELECT COUNT(*) as count FROM users");
+        $result = $stmt->fetch();
+        $userCount = $result ? $result['count'] : 0;
+        
+        $tests['users'] = [
+            'status' => 'info',
+            'message' => "$userCount utilisateur(s) dans la base"
+        ];
+    } catch (Exception $e) {
+        $tests['users'] = ['status' => 'warning', 'message' => 'Table users non trouvée ou erreur: ' . $e->getMessage()];
+    }
+} else {
+    $tests['users'] = ['status' => 'error', 'message' => 'Base de données non connectée'];
 }
 
 // Test 5: Configuration système
-try {
-    $settings = [
-        'site_name' => 'TarantulaSMM Bénin',
-        'email_verification_required' => false,
-        'site_currency' => 'FCFA'
-    ];
-    
-    foreach ($settings as $key => $value) {
-        $stmt = $db->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
-        $stmt->execute([$key, $value, $value]);
+if (isset($db)) {
+    try {
+        // Vérifier si la table system_settings existe
+        $stmt = $db->query("SHOW TABLES LIKE 'system_settings'");
+        if ($stmt->rowCount() > 0) {
+            $settings = [
+                'site_name' => 'TarantulaSMM Bénin',
+                'email_verification_required' => 'false',
+                'site_currency' => 'FCFA'
+            ];
+            
+            foreach ($settings as $key => $value) {
+                $stmt = $db->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+                $stmt->execute([$key, $value, $value]);
+            }
+            
+            $tests['settings'] = ['status' => 'success', 'message' => 'Paramètres système configurés'];
+        } else {
+            $tests['settings'] = ['status' => 'warning', 'message' => 'Table system_settings non trouvée'];
+        }
+    } catch (Exception $e) {
+        $tests['settings'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
     }
-    
-    $tests['settings'] = ['status' => 'success', 'message' => 'Paramètres système configurés'];
-} catch (Exception $e) {
-    $tests['settings'] = ['status' => 'error', 'message' => 'Erreur: ' . $e->getMessage()];
+} else {
+    $tests['settings'] = ['status' => 'error', 'message' => 'Base de données non connectée'];
 }
 ?>
 <!DOCTYPE html>
@@ -283,75 +335,98 @@ try {
         <!-- Tests détaillés -->
         <div class="row">
             <div class="col-lg-8">
-                <!-- Test connexion BDD -->
-                <div class="test-card <?php echo $tests['database']['status']; ?>">
-                    <div class="d-flex align-items-center">
-                        <div class="status-icon status-<?php echo $tests['database']['status']; ?>">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">Connexion Base de Données</h5>
-                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['database']['message']); ?></p>
-                        </div>
-                    </div>
-                </div>
+                                 <!-- Test fichiers -->
+                 <div class="test-card <?php echo $tests['files']['status']; ?>">
+                     <div class="d-flex align-items-center">
+                         <div class="status-icon status-<?php echo $tests['files']['status']; ?>">
+                             <i class="fas fa-file"></i>
+                         </div>
+                         <div>
+                             <h5 class="mb-1">Chargement des Fichiers</h5>
+                             <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['files']['message']); ?></p>
+                         </div>
+                     </div>
+                 </div>
+                 
+                 <!-- Test connexion BDD -->
+                 <?php if (isset($tests['database'])): ?>
+                 <div class="test-card <?php echo $tests['database']['status']; ?>">
+                     <div class="d-flex align-items-center">
+                         <div class="status-icon status-<?php echo $tests['database']['status']; ?>">
+                             <i class="fas fa-database"></i>
+                         </div>
+                         <div>
+                             <h5 class="mb-1">Connexion Base de Données</h5>
+                             <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['database']['message']); ?></p>
+                         </div>
+                     </div>
+                 </div>
+                 <?php endif; ?>
                 
-                <!-- Test tables -->
-                <div class="test-card <?php echo $tests['tables']['status']; ?>">
-                    <div class="d-flex align-items-center">
-                        <div class="status-icon status-<?php echo $tests['tables']['status']; ?>">
-                            <i class="fas fa-table"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Structure des Tables</h5>
-                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['tables']['message']); ?></p>
-                            <?php if (isset($tests['tables']['details'])): ?>
-                                <small class="text-success">
-                                    Tables trouvées: <?php echo implode(', ', $tests['tables']['details']); ?>
-                                </small>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
+                                 <!-- Test tables -->
+                 <?php if (isset($tests['tables'])): ?>
+                 <div class="test-card <?php echo $tests['tables']['status']; ?>">
+                     <div class="d-flex align-items-center">
+                         <div class="status-icon status-<?php echo $tests['tables']['status']; ?>">
+                             <i class="fas fa-table"></i>
+                         </div>
+                         <div class="flex-grow-1">
+                             <h5 class="mb-1">Structure des Tables</h5>
+                             <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['tables']['message']); ?></p>
+                             <?php if (isset($tests['tables']['details'])): ?>
+                                 <small class="text-success">
+                                     Tables trouvées: <?php echo implode(', ', $tests['tables']['details']); ?>
+                                 </small>
+                             <?php endif; ?>
+                         </div>
+                     </div>
+                 </div>
+                 <?php endif; ?>
                 
-                <!-- Test fonctions -->
-                <div class="test-card <?php echo $tests['functions']['status']; ?>">
-                    <div class="d-flex align-items-center">
-                        <div class="status-icon status-<?php echo $tests['functions']['status']; ?>">
-                            <i class="fas fa-cogs"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">Fonctions de Sécurité</h5>
-                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['functions']['message']); ?></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Test utilisateurs -->
-                <div class="test-card <?php echo $tests['users']['status']; ?>">
-                    <div class="d-flex align-items-center">
-                        <div class="status-icon status-<?php echo $tests['users']['status']; ?>">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">Utilisateurs</h5>
-                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['users']['message']); ?></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Test paramètres -->
-                <div class="test-card <?php echo $tests['settings']['status']; ?>">
-                    <div class="d-flex align-items-center">
-                        <div class="status-icon status-<?php echo $tests['settings']['status']; ?>">
-                            <i class="fas fa-sliders-h"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">Paramètres Système</h5>
-                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['settings']['message']); ?></p>
-                        </div>
-                    </div>
-                </div>
+                                 <!-- Test fonctions -->
+                 <?php if (isset($tests['functions'])): ?>
+                 <div class="test-card <?php echo $tests['functions']['status']; ?>">
+                     <div class="d-flex align-items-center">
+                         <div class="status-icon status-<?php echo $tests['functions']['status']; ?>">
+                             <i class="fas fa-cogs"></i>
+                         </div>
+                         <div>
+                             <h5 class="mb-1">Fonctions de Sécurité</h5>
+                             <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['functions']['message']); ?></p>
+                         </div>
+                     </div>
+                 </div>
+                 <?php endif; ?>
+                 
+                 <!-- Test utilisateurs -->
+                 <?php if (isset($tests['users'])): ?>
+                 <div class="test-card <?php echo $tests['users']['status']; ?>">
+                     <div class="d-flex align-items-center">
+                         <div class="status-icon status-<?php echo $tests['users']['status']; ?>">
+                             <i class="fas fa-users"></i>
+                         </div>
+                         <div>
+                             <h5 class="mb-1">Utilisateurs</h5>
+                             <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['users']['message']); ?></p>
+                         </div>
+                     </div>
+                 </div>
+                 <?php endif; ?>
+                 
+                 <!-- Test paramètres -->
+                 <?php if (isset($tests['settings'])): ?>
+                 <div class="test-card <?php echo $tests['settings']['status']; ?>">
+                     <div class="d-flex align-items-center">
+                         <div class="status-icon status-<?php echo $tests['settings']['status']; ?>">
+                             <i class="fas fa-sliders-h"></i>
+                         </div>
+                         <div>
+                             <h5 class="mb-1">Paramètres Système</h5>
+                             <p class="mb-0 text-muted"><?php echo htmlspecialchars($tests['settings']['message']); ?></p>
+                         </div>
+                     </div>
+                 </div>
+                 <?php endif; ?>
             </div>
             
             <!-- Informations système -->
@@ -361,8 +436,8 @@ try {
                     <hr>
                     <p><strong>PHP Version:</strong> <?php echo phpversion(); ?></p>
                     <p><strong>Date:</strong> <?php echo date('d/m/Y H:i:s'); ?></p>
-                    <p><strong>Base de données:</strong> <?php echo DB_NAME; ?></p>
-                    <p><strong>Environnement:</strong> <?php echo ENVIRONMENT; ?></p>
+                                         <p><strong>Base de données:</strong> <?php echo defined('DB_NAME') ? DB_NAME : 'Non définie'; ?></p>
+                     <p><strong>Environnement:</strong> <?php echo defined('ENVIRONMENT') ? ENVIRONMENT : 'Non défini'; ?></p>
                     
                     <h6 class="mt-3">Extensions PHP:</h6>
                     <ul class="list-unstyled">
@@ -380,17 +455,20 @@ try {
                 <div class="test-card success">
                     <h5><i class="fas fa-rocket me-2"></i>Actions Rapides</h5>
                     <hr>
-                    <div class="d-grid gap-2">
-                        <a href="register.php" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-user-plus me-1"></i>Créer un Compte
-                        </a>
-                        <a href="login.php" class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-sign-in-alt me-1"></i>Se Connecter
-                        </a>
-                        <a href="/" class="btn btn-outline-info btn-sm">
-                            <i class="fas fa-home me-1"></i>Page d'Accueil
-                        </a>
-                    </div>
+                                         <div class="d-grid gap-2">
+                         <a href="install.php" class="btn btn-warning btn-sm">
+                             <i class="fas fa-magic me-1"></i>Installer le Système
+                         </a>
+                         <a href="register.php" class="btn btn-outline-primary btn-sm">
+                             <i class="fas fa-user-plus me-1"></i>Créer un Compte
+                         </a>
+                         <a href="login.php" class="btn btn-outline-success btn-sm">
+                             <i class="fas fa-sign-in-alt me-1"></i>Se Connecter
+                         </a>
+                         <a href="/" class="btn btn-outline-info btn-sm">
+                             <i class="fas fa-home me-1"></i>Page d'Accueil
+                         </a>
+                     </div>
                 </div>
             </div>
         </div>
