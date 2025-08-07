@@ -52,14 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $emailVerificationToken = generateSecureToken();
                     
                     // Préparer les données utilisateur
+                    $emailVerificationRequired = getSetting('email_verification_required', false); // Désactivé par défaut pour les tests
                     $userData = [
                         'email' => $formData['email'],
                         'password_hash' => $passwordHash,
                         'first_name' => $formData['first_name'],
                         'last_name' => $formData['last_name'],
                         'phone' => $formData['phone'] ?: null,
-                        'email_verification_token' => $emailVerificationToken,
-                        'status' => getSetting('email_verification_required', true) ? 'inactive' : 'active'
+                        'email_verification_token' => $emailVerificationRequired ? $emailVerificationToken : null,
+                        'email_verified' => $emailVerificationRequired ? 0 : 1,
+                        'status' => $emailVerificationRequired ? 'inactive' : 'active'
                     ];
                     
                     // Insérer l'utilisateur
@@ -73,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
                         
                         // Envoyer l'email de vérification si requis
-                        if (getSetting('email_verification_required', true)) {
+                        if ($emailVerificationRequired) {
                             $verificationLink = getBaseURL() . "/verify-email.php?token=" . $emailVerificationToken;
                             $emailSubject = "Vérifiez votre compte TarantulaSMM";
                             $emailMessage = "
@@ -94,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $success = true;
                         
                         // Si la vérification email n'est pas requise, connecter directement
-                        if (!getSetting('email_verification_required', true)) {
+                        if (!$emailVerificationRequired) {
                             $user = dbFetch("SELECT * FROM users WHERE id = ?", [$userId]);
                             loginUser($user);
                             redirect('/dashboard');
@@ -130,10 +132,28 @@ $csrfToken = generateCSRFToken();
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- CSS externe -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    
     <style>
+        /* Variables CSS intégrées */
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --dark-color: #0f172a;
+            --light-color: #f8fafc;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
         .auth-page {
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -327,11 +347,7 @@ $csrfToken = generateCSRFToken();
                                 <div class="success-message">
                                     <i class="fas fa-check-circle me-2"></i>
                                     <h5 class="mb-2">Inscription réussie !</h5>
-                                    <?php if (getSetting('email_verification_required', true)): ?>
-                                        <p class="mb-0">Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien pour activer votre compte.</p>
-                                    <?php else: ?>
-                                        <p class="mb-0">Votre compte a été créé avec succès. Vous allez être redirigé vers votre tableau de bord.</p>
-                                    <?php endif; ?>
+                                    <p class="mb-0">Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.</p>
                                 </div>
                             <?php else: ?>
                                 <form method="POST" action="" id="registerForm" novalidate>
