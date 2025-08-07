@@ -4,12 +4,8 @@
 -- Compatible: MySQL 5.7+
 -- ========================================
 
--- Créer la base de données
-CREATE DATABASE IF NOT EXISTS tarantulasmm_benin 
-CHARACTER SET utf8mb4 
-COLLATE utf8mb4_unicode_ci;
-
-USE tarantulasmm_benin;
+-- Utiliser la base de données existante
+USE u634930929_Ino;
 
 -- ========================================
 -- TABLE: users (Utilisateurs)

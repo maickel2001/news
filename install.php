@@ -15,9 +15,9 @@ $dbConfig = [
     'host' => 'localhost',
     'port' => 3306,
     'charset' => 'utf8mb4',
-    'username' => 'root',
-    'password' => '',
-    'database' => 'tarantulasmm_benin'
+    'username' => 'u634930929_Ino',
+    'password' => 'Ino1234@',
+    'database' => 'u634930929_Ino'
 ];
 
 $installationSteps = [];
@@ -52,26 +52,20 @@ function executeSchemaFile($connection, $filePath) {
 // Traitement de l'installation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
     try {
-        // Étape 1: Connexion à MySQL sans base de données
-        $installationSteps[] = "Connexion à MySQL...";
-        $dsn = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};charset={$dbConfig['charset']}";
+        // Étape 1: Connexion directe à votre base de données
+        $installationSteps[] = "Connexion à votre base de données existante...";
+        $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['database']};port={$dbConfig['port']};charset={$dbConfig['charset']}";
         $connection = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]);
-        $installationSteps[] = "✅ Connexion MySQL réussie";
+        $installationSteps[] = "✅ Connexion à la base de données {$dbConfig['database']} réussie";
         
-        // Étape 2: Créer la base de données
-        $installationSteps[] = "Création de la base de données...";
-        $connection->exec("CREATE DATABASE IF NOT EXISTS {$dbConfig['database']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        $connection->exec("USE {$dbConfig['database']}");
-        $installationSteps[] = "✅ Base de données créée/sélectionnée";
-        
-        // Étape 3: Exécuter le schéma SQL
+        // Étape 2: Exécuter le schéma SQL
         $installationSteps[] = "Création des tables...";
         executeSchemaFile($connection, __DIR__ . '/database/schema.sql');
         $installationSteps[] = "✅ Tables créées avec succès";
         
-        // Étape 4: Créer l'utilisateur de démonstration
+        // Étape 3: Créer l'utilisateur de démonstration
         $installationSteps[] = "Création de l'utilisateur de démonstration...";
         
         // Hasher le mot de passe de démonstration
@@ -97,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
         ]);
         $installationSteps[] = "✅ Utilisateur de démonstration créé";
         
-        // Étape 5: Vérification des tables
+        // Étape 4: Vérification des tables
         $installationSteps[] = "Vérification des tables...";
         $tables = $connection->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
         $expectedTables = [
@@ -113,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
             throw new Exception("Tables manquantes: " . implode(', ', $missingTables));
         }
         
-        // Étape 6: Test de connexion avec les fonctions personnalisées
+        // Étape 5: Test de connexion avec les fonctions personnalisées
         $installationSteps[] = "Test des fonctions personnalisées...";
         require_once 'config/database.php';
         require_once 'includes/functions.php';
@@ -329,19 +323,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['install'])) {
                                 </div>
                             </div>
                             
-                            <!-- Informations importantes -->
-                            <div class="alert alert-info">
-                                <h6><i class="fas fa-info-circle me-2"></i>Informations importantes</h6>
-                                <ul class="mb-0">
-                                    <li>Cette installation créera la base de données et toutes les tables nécessaires</li>
-                                    <li>Un utilisateur de démonstration sera créé avec les identifiants:</li>
-                                    <ul>
-                                        <li><strong>Email:</strong> demo@tarantulasmm.bj</li>
-                                        <li><strong>Mot de passe:</strong> Demo123!</li>
-                                    </ul>
-                                    <li>Assurez-vous que MySQL est démarré et accessible</li>
-                                </ul>
-                            </div>
+                                                         <!-- Informations importantes -->
+                             <div class="alert alert-info">
+                                 <h6><i class="fas fa-info-circle me-2"></i>Informations importantes</h6>
+                                 <ul class="mb-0">
+                                     <li>Cette installation utilisera votre base de données existante <strong><?php echo $dbConfig['database']; ?></strong></li>
+                                     <li>Les tables TarantulaSMM seront créées dans cette base</li>
+                                     <li>Un utilisateur de démonstration sera créé avec les identifiants:</li>
+                                     <ul>
+                                         <li><strong>Email:</strong> demo@tarantulasmm.bj</li>
+                                         <li><strong>Mot de passe:</strong> Demo123!</li>
+                                     </ul>
+                                     <li>Vos données existantes ne seront pas affectées</li>
+                                 </ul>
+                             </div>
                             
                             <!-- Bouton d'installation -->
                             <form method="POST">

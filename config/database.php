@@ -34,27 +34,27 @@ if (strpos($environment, 'localhost') !== false || strpos($environment, '127.0.0
 switch (ENVIRONMENT) {
     case 'development':
         define('DB_HOST', 'localhost');
-        define('DB_NAME', 'tarantulasmm_benin');
-        define('DB_USER', 'root');
-        define('DB_PASS', '');
+        define('DB_NAME', 'u634930929_Ino');
+        define('DB_USER', 'u634930929_Ino');
+        define('DB_PASS', 'Ino1234@');
         define('DB_PORT', 3306);
         define('DEBUG_MODE', true);
         break;
         
     case 'staging':
         define('DB_HOST', 'localhost');
-        define('DB_NAME', 'tarantulasmm_staging');
-        define('DB_USER', 'staging_user');
-        define('DB_PASS', 'staging_password_here');
+        define('DB_NAME', 'u634930929_Ino');
+        define('DB_USER', 'u634930929_Ino');
+        define('DB_PASS', 'Ino1234@');
         define('DB_PORT', 3306);
         define('DEBUG_MODE', true);
         break;
         
     case 'production':
         define('DB_HOST', 'localhost');
-        define('DB_NAME', 'tarantulasmm_benin');
-        define('DB_USER', 'tarantula_user');
-        define('DB_PASS', 'production_password_here');
+        define('DB_NAME', 'u634930929_Ino');
+        define('DB_USER', 'u634930929_Ino');
+        define('DB_PASS', 'Ino1234@');
         define('DB_PORT', 3306);
         define('DEBUG_MODE', false);
         break;
