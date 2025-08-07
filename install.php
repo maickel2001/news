@@ -95,30 +95,53 @@ if ($install_requested) {
         
         // Créer un utilisateur admin par défaut
         $admin_email = 'admin@tarantulasmm.bj';
+        $admin_username = 'admin';
         $admin_password = password_hash('Admin123!', PASSWORD_ARGON2ID);
         
         try {
-            // Vérifier d'abord si l'utilisateur existe
-            $checkStmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            // Vérifier d'abord si l'admin existe dans admin_users
+            $checkStmt = $pdo->prepare("SELECT id FROM admin_users WHERE email = ?");
             $checkStmt->execute([$admin_email]);
-            $existingUser = $checkStmt->fetch();
+            $existingAdmin = $checkStmt->fetch();
             $checkStmt->closeCursor();
             
-            if ($existingUser) {
-                // Mettre à jour l'utilisateur existant
-                $updateStmt = $pdo->prepare("UPDATE users SET password_hash = ?, user_type = 'admin', status = 'active' WHERE email = ?");
+            if ($existingAdmin) {
+                // Mettre à jour l'admin existant
+                $updateStmt = $pdo->prepare("UPDATE admin_users SET password_hash = ?, status = 'active' WHERE email = ?");
                 $updateStmt->execute([$admin_password, $admin_email]);
                 $updateStmt->closeCursor();
                 $installation_status[] = ['step' => 'Admin', 'status' => 'success', 'message' => 'Compte admin mis à jour: admin@tarantulasmm.bj / Admin123!'];
             } else {
-                // Créer un nouvel utilisateur admin
-                $insertStmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, last_name, status, email_verified, user_type) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $insertStmt->execute([$admin_email, $admin_password, 'Admin', 'TarantulaSMM', 'active', 1, 'admin']);
+                // Créer un nouvel admin
+                $insertStmt = $pdo->prepare("INSERT INTO admin_users (username, email, password_hash, full_name, role, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $insertStmt->execute([$admin_username, $admin_email, $admin_password, 'Administrateur TarantulaSMM', 'super_admin', 'active']);
                 $insertStmt->closeCursor();
                 $installation_status[] = ['step' => 'Admin', 'status' => 'success', 'message' => 'Compte admin créé: admin@tarantulasmm.bj / Admin123!'];
             }
         } catch (PDOException $e) {
             $installation_status[] = ['step' => 'Admin', 'status' => 'warning', 'message' => 'Erreur admin: ' . $e->getMessage()];
+        }
+        
+        // Créer un utilisateur de démonstration
+        $demo_email = 'demo@tarantulasmm.bj';
+        $demo_password = password_hash('Demo123!', PASSWORD_ARGON2ID);
+        
+        try {
+            // Vérifier si l'utilisateur demo existe
+            $checkDemoStmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $checkDemoStmt->execute([$demo_email]);
+            $existingDemo = $checkDemoStmt->fetch();
+            $checkDemoStmt->closeCursor();
+            
+            if (!$existingDemo) {
+                // Créer l'utilisateur de démonstration
+                $insertDemoStmt = $pdo->prepare("INSERT INTO users (email, password_hash, first_name, last_name, phone, status, email_verified, balance) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $insertDemoStmt->execute([$demo_email, $demo_password, 'Utilisateur', 'Démonstration', '+22997000000', 'active', 1, 5000.00]);
+                $insertDemoStmt->closeCursor();
+                $installation_status[] = ['step' => 'Demo User', 'status' => 'success', 'message' => 'Utilisateur demo créé: demo@tarantulasmm.bj / Demo123!'];
+            }
+        } catch (PDOException $e) {
+            $installation_status[] = ['step' => 'Demo User', 'status' => 'warning', 'message' => 'Erreur utilisateur demo: ' . $e->getMessage()];
         }
         
         // Insérer des paramètres système
@@ -291,11 +314,11 @@ if ($install_requested) {
                                 <li>Insertion des données de base</li>
                             </ul>
                             
-                            <div class="alert alert-info">
-                                <strong>Compte administrateur :</strong><br>
-                                Email: admin@tarantulasmm.bj<br>
-                                Mot de passe: Admin123!
-                            </div>
+                                                         <div class="alert alert-info">
+                                 <strong>Comptes créés :</strong><br>
+                                 <strong>Admin :</strong> admin@tarantulasmm.bj / Admin123!<br>
+                                 <strong>Demo User :</strong> demo@tarantulasmm.bj / Demo123!
+                             </div>
                             
                             <form method="POST" action="">
                                 <input type="hidden" name="install" value="true">
