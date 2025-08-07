@@ -242,49 +242,69 @@
             text-align: center;
         }
         
-        .hero-shape {
-            width: 400px;
-            height: 400px;
-            background: var(--secondary);
-            border-radius: 50%;
+        .social-logos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .social-logo {
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
-            box-shadow: var(--shadow-hover);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-shape::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 80%;
-            height: 80%;
-            background: var(--accent);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.1;
-        }
-        
-        .hero-shape-content {
-            text-align: center;
-            z-index: 1;
-            color: var(--primary);
-        }
-        
-        .hero-shape-content h3 {
-            font-family: 'Space Grotesk', sans-serif;
             font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+            color: var(--secondary);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: var(--shadow);
+            animation: logoFloat 3s ease-in-out infinite;
         }
         
-        .hero-shape-content p {
-            font-size: 1.1rem;
-            opacity: 0.7;
+        .social-logo:nth-child(odd) {
+            animation-delay: 0.5s;
+        }
+        
+        .social-logo:nth-child(even) {
+            animation-delay: 1s;
+        }
+        
+        .social-logo.instagram {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+        
+        .social-logo.tiktok {
+            background: linear-gradient(45deg, #ff0050, #00f2ea);
+        }
+        
+        .social-logo.facebook {
+            background: #1877f2;
+        }
+        
+        .social-logo.youtube {
+            background: #ff0000;
+        }
+        
+        .social-logo.twitter {
+            background: #1da1f2;
+        }
+        
+        .social-logo.linkedin {
+            background: #0e76a8;
+        }
+        
+        .social-logo:hover {
+            transform: translateY(-10px) scale(1.1);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
         }
         
         /* Section Services Créative */
@@ -563,10 +583,16 @@
                 padding: 6rem 0;
             }
             
-            .hero-shape {
-                width: 300px;
-                height: 300px;
-                margin-top: 3rem;
+            .social-logos {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 300px;
+                gap: 1.5rem;
+            }
+            
+            .social-logo {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
             }
             
             .hero-buttons {
@@ -712,10 +738,24 @@
                 
                 <div class="col-lg-6">
                     <div class="hero-visual slide-right">
-                        <div class="hero-shape">
-                            <div class="hero-shape-content">
-                                <h3>25K+</h3>
-                                <p>Créateurs nous font confiance</p>
+                        <div class="social-logos">
+                            <div class="social-logo instagram">
+                                <i class="fab fa-instagram"></i>
+                            </div>
+                            <div class="social-logo tiktok">
+                                <i class="fab fa-tiktok"></i>
+                            </div>
+                            <div class="social-logo facebook">
+                                <i class="fab fa-facebook"></i>
+                            </div>
+                            <div class="social-logo youtube">
+                                <i class="fab fa-youtube"></i>
+                            </div>
+                            <div class="social-logo twitter">
+                                <i class="fab fa-twitter"></i>
+                            </div>
+                            <div class="social-logo linkedin">
+                                <i class="fab fa-linkedin"></i>
                             </div>
                         </div>
                     </div>
