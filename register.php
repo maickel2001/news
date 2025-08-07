@@ -1,121 +1,113 @@
 <?php
-/**
- * Page d'Inscription - TarantulaSMM Bénin
- * 
- * @author TarantulaSMM Team
- * @version 1.0.0
- * @since 2024
- */
-
-// Définir l'accès autorisé
-define('TARANTULA_ACCESS', true);
-
-// Inclure les fichiers nécessaires
+session_start();
 require_once 'config/database.php';
 require_once 'includes/functions.php';
 
-// Variables pour le formulaire
-$errors = [];
-$success = false;
-$formData = [
-    'first_name' => '',
-    'last_name' => '',
-    'email' => '',
-    'phone' => '',
-    'password' => '',
-    'password_confirm' => ''
-];
+// Rediriger si déjà connecté
+if (isLoggedIn()) {
+    header('Location: dashboard.php');
+    exit();
+}
 
-// Traitement du formulaire
+$error = '';
+$success = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Vérifier le rate limiting
-    if (!checkRateLimit('register', 3, 300)) { // 3 tentatives par 5 minutes
-        $errors['general'] = 'Trop de tentatives. Veuillez attendre 5 minutes.';
+    $first_name = trim($_POST['first_name'] ?? '');
+    $last_name = trim($_POST['last_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+    $terms = isset($_POST['terms']);
+    
+    // Validation
+    if (empty($first_name) || empty($last_name) || empty($email) || empty($password)) {
+        $error = 'Veuillez remplir tous les champs obligatoires.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Adresse email invalide.';
+    } elseif (strlen($password) < 6) {
+        $error = 'Le mot de passe doit contenir au moins 6 caractères.';
+    } elseif ($password !== $confirm_password) {
+        $error = 'Les mots de passe ne correspondent pas.';
+    } elseif (!$terms) {
+        $error = 'Vous devez accepter les conditions d\'utilisation.';
     } else {
-        // Vérifier le token CSRF
-        if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
-            $errors['general'] = 'Token de sécurité invalide. Veuillez recharger la page.';
-        } else {
-            // Nettoyer et récupérer les données
-            $formData = sanitizeInput($_POST);
+        try {
+            $db = Database::getInstance();
             
-            // Valider les données
-            $errors = validateRegistrationData($formData);
+            // Vérifier si l'email existe déjà
+            $stmt = $db->prepare("SELECT id FROM users WHERE email = ? UNION SELECT id FROM admin_users WHERE email = ?");
+            $stmt->execute([$email, $email]);
             
-            // Si pas d'erreurs, créer l'utilisateur
-            if (empty($errors)) {
-                try {
-                    // Hasher le mot de passe
-                    $passwordHash = hashPassword($formData['password']);
+            if ($stmt->fetch()) {
+                $error = 'Un compte avec cette adresse email existe déjà.';
+            } else {
+                // Vérifier si l'email verification est nécessaire
+                $email_verification_required = getSetting('email_verification_required', false);
+                
+                // Préparer les données utilisateur
+                $user_data = [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'password_hash' => password_hash($password, PASSWORD_ARGON2ID),
+                    'email_verified' => $email_verification_required ? 0 : 1,
+                    'email_verification_token' => $email_verification_required ? generateSecureToken() : null,
+                    'status' => 'active',
+                    'balance' => 0.00,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+                
+                // Insérer l'utilisateur
+                $stmt = $db->prepare("
+                    INSERT INTO users (first_name, last_name, email, phone, password_hash, email_verified, email_verification_token, status, balance, created_at, updated_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+                
+                $stmt->execute([
+                    $user_data['first_name'],
+                    $user_data['last_name'],
+                    $user_data['email'],
+                    $user_data['phone'],
+                    $user_data['password_hash'],
+                    $user_data['email_verified'],
+                    $user_data['email_verification_token'],
+                    $user_data['status'],
+                    $user_data['balance'],
+                    $user_data['created_at'],
+                    $user_data['updated_at']
+                ]);
+                
+                $user_id = $db->lastInsertId();
+                
+                // Log de l'activité
+                logActivity($user_id, 'user_registered', 'Nouvel utilisateur créé depuis ' . $_SERVER['REMOTE_ADDR']);
+                
+                if ($email_verification_required) {
+                    // Envoyer l'email de vérification
+                    $verification_link = "https://{$_SERVER['HTTP_HOST']}/verify-email.php?token={$user_data['email_verification_token']}";
                     
-                    // Générer un token de vérification email
-                    $emailVerificationToken = generateSecureToken();
+                    $email_sent = sendEmail($email, 'Vérifiez votre compte TarantulaSMM', "
+                        <h2>Bienvenue chez TarantulaSMM !</h2>
+                        <p>Merci de vous être inscrit. Cliquez sur le lien ci-dessous pour vérifier votre compte :</p>
+                        <p><a href='{$verification_link}' style='background: #ff6b35; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Vérifier mon compte</a></p>
+                        <p>Ce lien expire dans 24 heures.</p>
+                    ");
                     
-                    // Préparer les données utilisateur
-                    $emailVerificationRequired = getSetting('email_verification_required', false); // Désactivé par défaut pour les tests
-                    $userData = [
-                        'email' => $formData['email'],
-                        'password_hash' => $passwordHash,
-                        'first_name' => $formData['first_name'],
-                        'last_name' => $formData['last_name'],
-                        'phone' => $formData['phone'] ?: null,
-                        'email_verification_token' => $emailVerificationRequired ? $emailVerificationToken : null,
-                        'email_verified' => $emailVerificationRequired ? 0 : 1,
-                        'status' => $emailVerificationRequired ? 'inactive' : 'active'
-                    ];
-                    
-                    // Insérer l'utilisateur
-                    $userId = dbInsert('users', $userData);
-                    
-                    if ($userId) {
-                        // Logger l'activité
-                        logActivity('user_registered', "Nouvel utilisateur inscrit: {$formData['email']}", [
-                            'user_id' => $userId,
-                            'email' => $formData['email']
-                        ]);
-                        
-                        // Envoyer l'email de vérification si requis
-                        if ($emailVerificationRequired) {
-                            $verificationLink = getBaseURL() . "/verify-email.php?token=" . $emailVerificationToken;
-                            $emailSubject = "Vérifiez votre compte TarantulaSMM";
-                            $emailMessage = "
-                                <h2>Bienvenue sur TarantulaSMM Bénin !</h2>
-                                <p>Bonjour {$formData['first_name']},</p>
-                                <p>Merci de vous être inscrit sur notre plateforme. Pour activer votre compte, veuillez cliquer sur le lien ci-dessous :</p>
-                                <p><a href='{$verificationLink}' style='background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;'>Vérifier mon email</a></p>
-                                <p>Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :</p>
-                                <p>{$verificationLink}</p>
-                                <p>Ce lien expire dans 24 heures.</p>
-                                <hr>
-                                <p><small>TarantulaSMM Bénin - Boost tes réseaux sociaux</small></p>
-                            ";
-                            
-                            sendEmail($formData['email'], $emailSubject, $emailMessage);
-                        }
-                        
-                        $success = true;
-                        
-                        // Si la vérification email n'est pas requise, connecter directement
-                        if (!$emailVerificationRequired) {
-                            $user = dbFetch("SELECT * FROM users WHERE id = ?", [$userId]);
-                            loginUser($user);
-                            redirect('/dashboard');
-                        }
-                    } else {
-                        $errors['general'] = 'Erreur lors de la création du compte. Veuillez réessayer.';
-                    }
-                    
-                } catch (Exception $e) {
-                    error_log("Registration error: " . $e->getMessage());
-                    $errors['general'] = 'Erreur système. Veuillez réessayer plus tard.';
+                    $success = 'Compte créé avec succès ! Vérifiez votre email pour activer votre compte.';
+                } else {
+                    $success = 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.';
                 }
             }
+        } catch (Exception $e) {
+            $error = 'Erreur lors de la création du compte. Veuillez réessayer.';
+            error_log("Registration error: " . $e->getMessage());
         }
     }
 }
-
-// Générer le token CSRF
-$csrfToken = generateCSRFToken();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -123,527 +115,1068 @@ $csrfToken = generateCSRFToken();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - TarantulaSMM Bénin</title>
-    <meta name="description" content="Créez votre compte TarantulaSMM pour booster vos réseaux sociaux au Bénin. Inscription rapide et sécurisée.">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Variables CSS intégrées */
         :root {
-            --primary-color: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --secondary-color: #f59e0b;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --dark-color: #0f172a;
-            --light-color: #f8fafc;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --primary: #000000;
+            --secondary: #ffffff;
+            --accent: #ff6b35;
+            --accent-light: #ff8660;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-light: #999999;
+            --bg-light: #fafafa;
+            --bg-dark: #0a0a0a;
+            --border: #e0e0e0;
+            --shadow: 0 4px 60px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 8px 80px rgba(0, 0, 0, 0.1);
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            font-family: 'Inter', sans-serif;
-        }
-        .auth-page {
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-light);
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* Hero Section comme l'accueil */
+        .auth-hero {
+            position: relative;
+            min-height: 100vh;
             display: flex;
             align-items: center;
-            padding: 2rem 0;
-        }
-        
-        .auth-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            overflow: hidden;
-            max-width: 500px;
-            width: 100%;
-        }
-        
-        .auth-header {
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9)),
+                        url('https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center/cover;
             color: white;
+            overflow: hidden;
+        }
+        
+        .auth-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: var(--primary);
+            clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
+            z-index: 1;
+        }
+        
+        .auth-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 2rem;
+        }
+        
+        /* Navigation minimaliste */
+        .auth-nav {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            right: 2rem;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .auth-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-brand:hover {
+            color: var(--accent);
+        }
+        
+        .btn-home {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: var(--secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        /* Form Container */
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 500px;
+            margin: 0 auto;
+            transform: translateY(0);
+            animation: slideInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-header {
             text-align: center;
+            margin-bottom: 2.5rem;
         }
         
-        .auth-body {
-            padding: 2.5rem;
+        .form-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--secondary);
+            margin: 0 auto 1.5rem;
+            animation: iconFloat 3s ease-in-out infinite;
         }
         
-        .form-floating {
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .form-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        /* Form Elements */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
             margin-bottom: 1.5rem;
         }
         
-        .form-floating .form-control {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            height: 58px;
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.9rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--secondary);
+            color: var(--text-primary);
             font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+            outline: none;
+            transform: translateY(-2px);
+        }
+        
+        .form-icon-input {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
             transition: all 0.3s ease;
         }
         
-        .form-floating .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        .form-group:focus-within .form-icon-input {
+            color: var(--accent);
         }
         
-        .form-floating label {
-            color: #64748b;
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .password-toggle:hover {
+            color: var(--accent);
+        }
+        
+        /* Password Strength */
+        .password-strength {
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border);
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            width: 0%;
+        }
+        
+        .strength-fill.weak { background: var(--danger); width: 25%; }
+        .strength-fill.fair { background: var(--warning); width: 50%; }
+        .strength-fill.good { background: var(--info); width: 75%; }
+        .strength-fill.strong { background: var(--success); width: 100%; }
+        
+        .strength-text {
+            font-size: 0.8rem;
             font-weight: 500;
         }
         
-        .btn-register {
-            background: var(--gradient-primary);
-            border: none;
-            padding: 1rem 2rem;
+        .strength-text.weak { color: var(--danger); }
+        .strength-text.fair { color: var(--warning); }
+        .strength-text.good { color: var(--info); }
+        .strength-text.strong { color: var(--success); }
+        
+        /* Terms Checkbox */
+        .terms-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-light);
             border-radius: 10px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            width: 100%;
+            border: 1px solid var(--border);
+        }
+        
+        .terms-check-input {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            background: var(--secondary);
+            cursor: pointer;
             transition: all 0.3s ease;
+            flex-shrink: 0;
+            margin-top: 0.2rem;
+        }
+        
+        .terms-check-input:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .terms-check-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            line-height: 1.5;
+        }
+        
+        .terms-check-label a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .terms-check-label a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--secondary);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
             position: relative;
             overflow: hidden;
         }
         
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-        }
-        
-        .btn-register:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-        
-        .btn-register .spinner-border {
-            width: 1.2rem;
-            height: 1.2rem;
-        }
-        
-        .password-strength {
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .strength-meter {
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 0.5rem;
-        }
-        
-        .strength-meter-fill {
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
             height: 100%;
-            transition: all 0.3s ease;
-            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
         
-        .strength-weak { background: #ef4444; width: 33%; }
-        .strength-medium { background: #f59e0b; width: 66%; }
-        .strength-strong { background: #10b981; width: 100%; }
+        .btn-submit:hover::before {
+            left: 100%;
+        }
         
-        .error-message {
-            background: #fef2f2;
-            color: #b91c1c;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #ef4444;
-            margin-bottom: 1.5rem;
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 107, 53, 0.4);
+        }
+        
+        .btn-submit:active {
+            transform: translateY(-1px);
+        }
+        
+        /* Links */
+        .form-links {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .form-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .form-link:hover {
+            color: var(--accent-light);
+            text-decoration: underline;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--text-light);
             font-size: 0.9rem;
         }
         
-        .success-message {
-            background: #f0fdf4;
-            color: #166534;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #10b981;
-            margin-bottom: 1.5rem;
-            text-align: center;
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
         }
         
-        .field-error {
-            color: #ef4444;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
+        .divider span {
+            padding: 0 1rem;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            animation: alertSlide 0.5s ease;
+        }
+        
+        @keyframes alertSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+        
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+        
+        /* Social Logos flottants */
+        .floating-social {
+            position: absolute;
+            z-index: 1;
+        }
+        
+        .social-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-size: 1.5rem;
+            animation: logoFloat 4s ease-in-out infinite;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .social-logo.instagram {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            top: 15%;
+            right: 10%;
+            animation-delay: 0s;
+        }
+        
+        .social-logo.tiktok {
+            background: linear-gradient(45deg, #ff0050, #00f2ea);
+            top: 30%;
+            left: 5%;
+            animation-delay: 1s;
+        }
+        
+        .social-logo.facebook {
+            background: #1877f2;
+            bottom: 40%;
+            right: 8%;
+            animation-delay: 2s;
+        }
+        
+        .social-logo.youtube {
+            background: #ff0000;
+            bottom: 20%;
+            left: 8%;
+            animation-delay: 3s;
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        /* Loading State */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Form validation styling */
+        .form-control.is-valid {
+            border-color: var(--success);
         }
         
         .form-control.is-invalid {
-            border-color: #ef4444;
+            border-color: var(--danger);
         }
         
-        .back-to-home {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+        .valid-feedback,
+        .invalid-feedback {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
         }
         
-        .back-to-home:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            transform: translateX(-5px);
+        .valid-feedback {
+            color: var(--success);
         }
         
-        @media (max-width: 576px) {
-            .auth-body {
-                padding: 1.5rem;
+        .invalid-feedback {
+            color: var(--danger);
+        }
+        
+        /* Responsive Mobile-first */
+        @media (max-width: 768px) {
+            .auth-hero::before {
+                width: 100%;
+                height: 50%;
+                clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
             }
             
-            .auth-header {
+            .auth-nav {
+                top: 1rem;
+                left: 1rem;
+                right: 1rem;
+            }
+            
+            .auth-brand {
+                font-size: 1.3rem;
+            }
+            
+            .btn-home {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .form-container {
+                margin: 0 1rem;
+                padding: 2rem;
+                border-radius: 15px;
+                max-width: none;
+            }
+            
+            .form-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .form-title {
+                font-size: 1.7rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .floating-social {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1rem;
+            }
+            
+            .form-container {
                 padding: 1.5rem;
+                margin: 0 0.5rem;
+            }
+            
+            .form-control {
+                padding: 0.9rem 0.9rem 0.9rem 2.5rem;
+            }
+            
+            .btn-submit {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Desktop Enhancement */
+        @media (min-width: 1200px) {
+            .auth-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                align-items: center;
+                gap: 4rem;
+            }
+            
+            .welcome-content {
+                padding-right: 2rem;
+            }
+            
+            .welcome-title {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: clamp(2.5rem, 4vw, 3.5rem);
+                font-weight: 800;
+                line-height: 1.1;
+                margin-bottom: 1.5rem;
+                color: var(--secondary);
+            }
+            
+            .welcome-subtitle {
+                font-size: 1.2rem;
+                color: rgba(255, 255, 255, 0.9);
+                line-height: 1.6;
+                margin-bottom: 2rem;
+            }
+            
+            .welcome-benefits {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+            
+            .benefit-item {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                padding: 1.5rem;
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.3s ease;
+            }
+            
+            .benefit-item:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-5px);
+            }
+            
+            .benefit-icon {
+                width: 50px;
+                height: 50px;
+                background: var(--accent);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--secondary);
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+            }
+            
+            .benefit-title {
+                font-weight: 700;
+                color: var(--secondary);
+                margin-bottom: 0.5rem;
+            }
+            
+            .benefit-desc {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 0.9rem;
+                line-height: 1.5;
             }
         }
     </style>
 </head>
 <body>
-    <div class="auth-page">
-        <!-- Bouton retour -->
-        <a href="/" class="back-to-home">
-            <i class="fas fa-arrow-left me-2"></i>Retour à l'accueil
-        </a>
-        
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-5">
-                    <div class="auth-card">
-                        <!-- En-tête -->
-                        <div class="auth-header">
-                            <h1 class="h3 mb-2">
-                                <i class="fas fa-spider me-2"></i>Inscription
-                            </h1>
-                            <p class="mb-0 opacity-90">Créez votre compte TarantulaSMM</p>
+    <div class="auth-hero">
+        <!-- Navigation -->
+        <div class="auth-nav">
+            <a href="/" class="auth-brand">
+                <i class="fas fa-spider me-2"></i>TarantulaSMM
+            </a>
+            <a href="/" class="btn-home">
+                <i class="fas fa-home me-2"></i>Accueil
+            </a>
+        </div>
+
+        <!-- Logos sociaux flottants -->
+        <div class="floating-social">
+            <div class="social-logo instagram">
+                <i class="fab fa-instagram"></i>
+            </div>
+            <div class="social-logo tiktok">
+                <i class="fab fa-tiktok"></i>
+            </div>
+            <div class="social-logo facebook">
+                <i class="fab fa-facebook"></i>
+            </div>
+            <div class="social-logo youtube">
+                <i class="fab fa-youtube"></i>
+            </div>
+        </div>
+
+        <div class="auth-container">
+            <!-- Welcome Content (Desktop only) -->
+            <div class="welcome-content d-none d-xl-block">
+                <h1 class="welcome-title">
+                    Rejoignez <span style="color: var(--accent);">TarantulaSMM</span> Bénin
+                </h1>
+                <p class="welcome-subtitle">
+                    Créez votre compte et accédez aux meilleurs services SMM du Bénin. Boostez votre présence sur tous les réseaux sociaux !
+                </p>
+                
+                <div class="welcome-benefits">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-rocket"></i>
                         </div>
-                        
-                        <!-- Corps du formulaire -->
-                        <div class="auth-body">
-                            <?php if (!empty($errors['general'])): ?>
-                                <div class="error-message">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <?php echo htmlspecialchars($errors['general']); ?>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <?php if ($success): ?>
-                                <div class="success-message">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    <h5 class="mb-2">Inscription réussie !</h5>
-                                    <p class="mb-0">Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.</p>
-                                </div>
-                            <?php else: ?>
-                                <form method="POST" action="" id="registerForm" novalidate>
-                                    <input type="hidden" name="csrf_token" value="<?php echo $csrfToken; ?>">
-                                    
-                                    <!-- Prénom -->
-                                    <div class="form-floating">
-                                        <input 
-                                            type="text" 
-                                            class="form-control<?php echo isset($errors['first_name']) ? ' is-invalid' : ''; ?>" 
-                                            id="first_name" 
-                                            name="first_name" 
-                                            placeholder="Prénom"
-                                            value="<?php echo htmlspecialchars($formData['first_name']); ?>"
-                                            required
-                                        >
-                                        <label for="first_name">
-                                            <i class="fas fa-user me-2"></i>Prénom
-                                        </label>
-                                        <?php if (isset($errors['first_name'])): ?>
-                                            <div class="field-error"><?php echo $errors['first_name']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Nom -->
-                                    <div class="form-floating">
-                                        <input 
-                                            type="text" 
-                                            class="form-control<?php echo isset($errors['last_name']) ? ' is-invalid' : ''; ?>" 
-                                            id="last_name" 
-                                            name="last_name" 
-                                            placeholder="Nom"
-                                            value="<?php echo htmlspecialchars($formData['last_name']); ?>"
-                                            required
-                                        >
-                                        <label for="last_name">
-                                            <i class="fas fa-user me-2"></i>Nom
-                                        </label>
-                                        <?php if (isset($errors['last_name'])): ?>
-                                            <div class="field-error"><?php echo $errors['last_name']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Email -->
-                                    <div class="form-floating">
-                                        <input 
-                                            type="email" 
-                                            class="form-control<?php echo isset($errors['email']) ? ' is-invalid' : ''; ?>" 
-                                            id="email" 
-                                            name="email" 
-                                            placeholder="Email"
-                                            value="<?php echo htmlspecialchars($formData['email']); ?>"
-                                            required
-                                        >
-                                        <label for="email">
-                                            <i class="fas fa-envelope me-2"></i>Adresse Email
-                                        </label>
-                                        <?php if (isset($errors['email'])): ?>
-                                            <div class="field-error"><?php echo $errors['email']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Téléphone -->
-                                    <div class="form-floating">
-                                        <input 
-                                            type="tel" 
-                                            class="form-control<?php echo isset($errors['phone']) ? ' is-invalid' : ''; ?>" 
-                                            id="phone" 
-                                            name="phone" 
-                                            placeholder="Téléphone"
-                                            value="<?php echo htmlspecialchars($formData['phone']); ?>"
-                                        >
-                                        <label for="phone">
-                                            <i class="fas fa-phone me-2"></i>Téléphone (optionnel)
-                                        </label>
-                                        <div class="form-text">Format: +229XXXXXXXX ou XXXXXXXX</div>
-                                        <?php if (isset($errors['phone'])): ?>
-                                            <div class="field-error"><?php echo $errors['phone']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Mot de passe -->
-                                    <div class="form-floating">
-                                        <input 
-                                            type="password" 
-                                            class="form-control<?php echo isset($errors['password']) ? ' is-invalid' : ''; ?>" 
-                                            id="password" 
-                                            name="password" 
-                                            placeholder="Mot de passe"
-                                            required
-                                        >
-                                        <label for="password">
-                                            <i class="fas fa-lock me-2"></i>Mot de passe
-                                        </label>
-                                        <div class="password-strength">
-                                            <div class="strength-meter">
-                                                <div class="strength-meter-fill" id="strengthMeter"></div>
-                                            </div>
-                                            <small id="strengthText" class="text-muted">
-                                                Au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre
-                                            </small>
-                                        </div>
-                                        <?php if (isset($errors['password'])): ?>
-                                            <div class="field-error"><?php echo $errors['password']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Confirmation mot de passe -->
-                                    <div class="form-floating">
-                                        <input 
-                                            type="password" 
-                                            class="form-control<?php echo isset($errors['password_confirm']) ? ' is-invalid' : ''; ?>" 
-                                            id="password_confirm" 
-                                            name="password_confirm" 
-                                            placeholder="Confirmer le mot de passe"
-                                            required
-                                        >
-                                        <label for="password_confirm">
-                                            <i class="fas fa-lock me-2"></i>Confirmer le mot de passe
-                                        </label>
-                                        <?php if (isset($errors['password_confirm'])): ?>
-                                            <div class="field-error"><?php echo $errors['password_confirm']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <!-- Bouton d'inscription -->
-                                    <button type="submit" class="btn btn-register text-white" id="submitBtn">
-                                        <span class="btn-text">
-                                            <i class="fas fa-user-plus me-2"></i>Créer mon compte
-                                        </span>
-                                        <span class="btn-loading d-none">
-                                            <span class="spinner-border spinner-border-sm me-2"></span>
-                                            Création en cours...
-                                        </span>
-                                    </button>
-                                </form>
-                            <?php endif; ?>
-                            
-                            <!-- Liens -->
-                            <div class="text-center mt-4">
-                                <p class="mb-0">
-                                    Déjà un compte ? 
-                                    <a href="login.php" class="text-decoration-none fw-semibold" style="color: var(--primary-color);">
-                                        Se connecter
-                                    </a>
-                                </p>
+                        <div class="benefit-title">Livraison Express</div>
+                        <div class="benefit-desc">Services livrés en quelques minutes pour un boost immédiat</div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <div class="benefit-title">100% Sécurisé</div>
+                        <div class="benefit-desc">Vos données et transactions sont entièrement protégées</div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="benefit-title">Mobile Money</div>
+                        <div class="benefit-desc">Paiement facile avec MTN Money et Moov Money</div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="benefit-title">Qualité Premium</div>
+                        <div class="benefit-desc">Services de la plus haute qualité pour tous vos réseaux</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h2 class="form-title">Inscription</h2>
+                    <p class="form-subtitle">Créez votre compte TarantulaSMM gratuitement</p>
+                </div>
+
+                <?php if ($error): ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <?= htmlspecialchars($error) ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <?= htmlspecialchars($success) ?>
+                </div>
+                <?php endif; ?>
+
+                <form method="POST" id="registerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Prénom *</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-user form-icon-input"></i>
+                                <input type="text" name="first_name" class="form-control" 
+                                       placeholder="Votre prénom" 
+                                       value="<?= htmlspecialchars($_POST['first_name'] ?? '') ?>" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Nom *</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-user form-icon-input"></i>
+                                <input type="text" name="last_name" class="form-control" 
+                                       placeholder="Votre nom" 
+                                       value="<?= htmlspecialchars($_POST['last_name'] ?? '') ?>" required>
                             </div>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse Email *</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-envelope form-icon-input"></i>
+                            <input type="email" name="email" id="email" class="form-control" 
+                                   placeholder="votre@email.com" 
+                                   value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Téléphone (optionnel)</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-phone form-icon-input"></i>
+                            <input type="tel" name="phone" class="form-control" 
+                                   placeholder="+229 XX XX XX XX" 
+                                   value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mot de Passe *</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-lock form-icon-input"></i>
+                            <input type="password" name="password" id="password" class="form-control" 
+                                   placeholder="••••••••" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                <i class="fas fa-eye" id="toggleIcon1"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strengthFill"></div>
+                            </div>
+                            <div class="strength-text" id="strengthText">Entrez un mot de passe</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirmer le Mot de Passe *</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-lock form-icon-input"></i>
+                            <input type="password" name="confirm_password" id="confirm_password" class="form-control" 
+                                   placeholder="••••••••" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">
+                                <i class="fas fa-eye" id="toggleIcon2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="terms-check">
+                        <input type="checkbox" name="terms" id="terms" class="terms-check-input" required>
+                        <label for="terms" class="terms-check-label">
+                            J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> et la 
+                            <a href="#" target="_blank">politique de confidentialité</a> de TarantulaSMM. 
+                            Je confirme avoir au moins 16 ans.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Créer mon Compte
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>Déjà membre ?</span>
+                </div>
+
+                <div class="form-links">
+                    <a href="login.php" class="form-link">
+                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Bootstrap 5 JS -->
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- JavaScript pour la validation et UX -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('registerForm');
-            const submitBtn = document.getElementById('submitBtn');
-            const passwordInput = document.getElementById('password');
-            const confirmPasswordInput = document.getElementById('password_confirm');
-            const strengthMeter = document.getElementById('strengthMeter');
+        // Password toggle
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const toggleIcon = document.getElementById(fieldId === 'password' ? 'toggleIcon1' : 'toggleIcon2');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+        
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const strengthIndicator = document.getElementById('passwordStrength');
+            const strengthFill = document.getElementById('strengthFill');
             const strengthText = document.getElementById('strengthText');
             
-            // Validation en temps réel du mot de passe
-            if (passwordInput) {
-                passwordInput.addEventListener('input', function() {
-                    const password = this.value;
-                    const strength = calculatePasswordStrength(password);
-                    updatePasswordStrength(strength);
-                });
+            if (password.length === 0) {
+                strengthIndicator.style.display = 'none';
+                return;
             }
             
-            // Validation de confirmation du mot de passe
-            if (confirmPasswordInput) {
-                confirmPasswordInput.addEventListener('input', function() {
-                    const password = passwordInput.value;
-                    const confirm = this.value;
-                    
-                    if (confirm && password !== confirm) {
-                        this.classList.add('is-invalid');
-                        showFieldError(this, 'Les mots de passe ne correspondent pas');
-                    } else {
-                        this.classList.remove('is-invalid');
-                        hideFieldError(this);
-                    }
-                });
+            strengthIndicator.style.display = 'block';
+            
+            let score = 0;
+            let feedback = '';
+            
+            // Length check
+            if (password.length >= 8) score += 1;
+            if (password.length >= 12) score += 1;
+            
+            // Character variety checks
+            if (/[a-z]/.test(password)) score += 1;
+            if (/[A-Z]/.test(password)) score += 1;
+            if (/[0-9]/.test(password)) score += 1;
+            if (/[^A-Za-z0-9]/.test(password)) score += 1;
+            
+            // Determine strength
+            if (score < 3) {
+                strengthFill.className = 'strength-fill weak';
+                strengthText.className = 'strength-text weak';
+                feedback = 'Mot de passe faible';
+            } else if (score < 4) {
+                strengthFill.className = 'strength-fill fair';
+                strengthText.className = 'strength-text fair';
+                feedback = 'Mot de passe moyen';
+            } else if (score < 5) {
+                strengthFill.className = 'strength-fill good';
+                strengthText.className = 'strength-text good';
+                feedback = 'Bon mot de passe';
+            } else {
+                strengthFill.className = 'strength-fill strong';
+                strengthText.className = 'strength-text strong';
+                feedback = 'Mot de passe très fort';
             }
             
-            // Validation du formulaire
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    let isValid = true;
-                    
-                    // Validation de base de tous les champs requis
-                    const requiredFields = form.querySelectorAll('input[required]');
-                    requiredFields.forEach(field => {
-                        if (!field.value.trim()) {
-                            field.classList.add('is-invalid');
-                            showFieldError(field, 'Ce champ est requis');
-                            isValid = false;
-                        } else {
-                            field.classList.remove('is-invalid');
-                            hideFieldError(field);
-                        }
-                    });
-                    
-                    // Validation spécifique de l'email
-                    const emailField = document.getElementById('email');
-                    if (emailField && emailField.value) {
-                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(emailField.value)) {
-                            emailField.classList.add('is-invalid');
-                            showFieldError(emailField, 'Format d\'email invalide');
-                            isValid = false;
-                        }
-                    }
-                    
-                    // Validation du mot de passe
-                    if (passwordInput && passwordInput.value) {
-                        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-                        if (!passwordRegex.test(passwordInput.value)) {
-                            passwordInput.classList.add('is-invalid');
-                            showFieldError(passwordInput, 'Mot de passe trop faible');
-                            isValid = false;
-                        }
-                    }
-                    
-                    if (!isValid) {
-                        e.preventDefault();
-                        return;
-                    }
-                    
-                    // Afficher le loader
-                    showLoading();
-                });
-            }
+            strengthText.textContent = feedback;
+        }
+        
+        // Form validation
+        const form = document.getElementById('registerForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        
+        // Real-time password strength checking
+        passwordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+            validatePasswordMatch();
+        });
+        
+        confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+        
+        function validatePasswordMatch() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
             
-            function calculatePasswordStrength(password) {
-                let score = 0;
-                
-                // Longueur
-                if (password.length >= 8) score += 1;
-                if (password.length >= 12) score += 1;
-                
-                // Caractères
-                if (/[a-z]/.test(password)) score += 1;
-                if (/[A-Z]/.test(password)) score += 1;
-                if (/[0-9]/.test(password)) score += 1;
-                if (/[@$!%*?&]/.test(password)) score += 1;
-                
-                return Math.min(score, 3);
-            }
-            
-            function updatePasswordStrength(strength) {
-                const classes = ['strength-weak', 'strength-medium', 'strength-strong'];
-                const texts = ['Faible', 'Moyen', 'Fort'];
-                const colors = ['#ef4444', '#f59e0b', '#10b981'];
-                
-                strengthMeter.className = 'strength-meter-fill';
-                
-                if (strength > 0) {
-                    strengthMeter.classList.add(classes[strength - 1]);
-                    strengthText.textContent = 'Force du mot de passe: ' + texts[strength - 1];
-                    strengthText.style.color = colors[strength - 1];
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    confirmPasswordInput.classList.remove('is-invalid');
+                    confirmPasswordInput.classList.add('is-valid');
                 } else {
-                    strengthText.textContent = 'Au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre';
-                    strengthText.style.color = '#64748b';
+                    confirmPasswordInput.classList.remove('is-valid');
+                    confirmPasswordInput.classList.add('is-invalid');
                 }
+            } else {
+                confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+            }
+        }
+        
+        // Email validation
+        emailInput.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && emailRegex.test(this.value)) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else if (this.value) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+        
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const terms = document.getElementById('terms').checked;
+            
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Le mot de passe doit contenir au moins 6 caractères');
+                return;
             }
             
-            function showFieldError(field, message) {
-                hideFieldError(field);
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'field-error';
-                errorDiv.textContent = message;
-                field.parentNode.appendChild(errorDiv);
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Les mots de passe ne correspondent pas');
+                return;
             }
             
-            function hideFieldError(field) {
-                const existingError = field.parentNode.querySelector('.field-error');
-                if (existingError) {
-                    existingError.remove();
-                }
+            if (!terms) {
+                e.preventDefault();
+                alert('Vous devez accepter les conditions d\'utilisation');
+                return;
             }
             
-            function showLoading() {
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.querySelector('.btn-text').classList.add('d-none');
-                    submitBtn.querySelector('.btn-loading').classList.remove('d-none');
+            // Show loading
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '<span class="spinner"></span>Création en cours...';
+            submitBtn.disabled = true;
+        });
+        
+        // Auto-focus first field
+        window.addEventListener('load', () => {
+            document.querySelector('input[name="first_name"]').focus();
+        });
+        
+        // Social logos animation
+        document.querySelectorAll('.social-logo').forEach(logo => {
+            logo.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.1)';
+            });
+            
+            logo.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+        
+        // Phone number formatting (Benin format)
+        const phoneInput = document.querySelector('input[name="phone"]');
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.startsWith('229')) {
+                // Already has country code
+                if (value.length <= 11) {
+                    value = value.replace(/(\d{3})(\d{2})(\d{2})(\d{2})(\d{2})/, '+$1 $2 $3 $4 $5');
                 }
+            } else if (value.length === 8) {
+                // Add Benin country code
+                value = '+229 ' + value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4');
             }
+            
+            e.target.value = value;
         });
     </script>
 </body>
